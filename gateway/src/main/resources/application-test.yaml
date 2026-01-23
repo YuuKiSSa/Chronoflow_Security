@@ -1,0 +1,8 @@
+spring:
+  # Redis config
+  data:
+    redis:
+      host: ${TEST_REDIS_HOST}
+      port: ${TEST_REDIS_PORT}
+      database: ${TEST_REDIS_DATABASE}
+      password: ${TEST_REDIS_PASSWORD}

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: noti-config
+  namespace: chronoflow
+data:
+  gcp.project.id: "chronoflow-noti-service"

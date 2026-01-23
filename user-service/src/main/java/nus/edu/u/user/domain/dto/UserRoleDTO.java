@@ -1,0 +1,34 @@
+package nus.edu.u.user.domain.dto;
+
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * Use for store union table query result
+ *
+ * @author Lu Shuwen
+ * @date 2025-09-10
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class UserRoleDTO {
+
+    private Long userId;
+
+    private String username;
+
+    private String email;
+
+    private String phone;
+
+    private Integer status;
+
+    private Long tenantId;
+
+    private List<RoleDTO> roles;
+}
