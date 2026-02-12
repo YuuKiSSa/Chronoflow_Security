@@ -39,66 +39,67 @@ spring:
         namespace: ${spring.profiles.active}
         group: DEFAULT_GROUP
     gateway:
-      routes:
-        # User Service
-        - id: user
-          uri: lb://user-service
-          predicates:
-            - Path=/users/**
-          filters:
-            - RewritePath=/users/v3/api-docs, /v3/api-docs
-        # Event Service
-        - id: event
-          uri: lb://event-service
-          predicates:
-            - Path=/events/**
-          filters:
-            - RewritePath=/events/v3/api-docs, /v3/api-docs
-        # Task Service
-        - id: task
-          uri: lb://task-service
-          predicates:
-            - Path=/tasks/**
-          filters:
-            - RewritePath=/tasks/v3/api-docs, /v3/api-docs
-        # Attendee Service
-        - id: attendee
-          uri: lb://attendee-service
-          predicates:
-            - Path=/attendees/**
-          filters:
-            - RewritePath=/attendees/v3/api-docs, /v3/api-docs
-        # File Service
-        - id: file
-          uri: lb://file-service
-          predicates:
-            - Path=/files/**
-          filters:
-            - RewritePath=/files/v3/api-docs, /v3/api-docs
-        # Notification Service
-        - id: notification
-          uri: lb://notification-service
-          predicates:
-            - Path=/notifications/**
-          filters:
-            - RewritePath=/notifications/v3/api-docs, /v3/api-docs
-        # websocket gateway
-        - id: ws-upgrade
-          uri: lb:ws://ws-gateway
-          predicates:
-            - Path=/ws
-            - Header=Upgrade, websocket
-          order: -10
+      server:
+        webflux:
+          x-forwarded:
+            prefix-enabled: false
+          routes:
+            # User Service
+                    - id: user
+                      uri: lb://user-service
+                      predicates:
+                        - Path=/users/**
+                      filters:
+                        - RewritePath=/users/v3/api-docs, /v3/api-docs
+                    # Event Service
+                    - id: event
+                      uri: lb://event-service
+                      predicates:
+                        - Path=/events/**
+                      filters:
+                        - RewritePath=/events/v3/api-docs, /v3/api-docs
+                    # Task Service
+                    - id: task
+                      uri: lb://task-service
+                      predicates:
+                        - Path=/tasks/**
+                      filters:
+                        - RewritePath=/tasks/v3/api-docs, /v3/api-docs
+                    # Attendee Service
+                    - id: attendee
+                      uri: lb://attendee-service
+                      predicates:
+                        - Path=/attendees/**
+                      filters:
+                        - RewritePath=/attendees/v3/api-docs, /v3/api-docs
+                    # File Service
+                    - id: file
+                      uri: lb://file-service
+                      predicates:
+                        - Path=/files/**
+                      filters:
+                        - RewritePath=/files/v3/api-docs, /v3/api-docs
+                    # Notification Service
+                    - id: notification
+                      uri: lb://notification-service
+                      predicates:
+                        - Path=/notifications/**
+                      filters:
+                        - RewritePath=/notifications/v3/api-docs, /v3/api-docs
+                    # websocket gateway
+                    - id: ws-upgrade
+                      uri: lb:ws://ws-gateway
+                      predicates:
+                        - Path=/ws
+                        - Header=Upgrade, websocket
+                      order: -10
 
-        # 2) REST under /ws/**
-        - id: ws-api
-          uri: lb://ws-gateway
-          predicates:
-            - Path=/ws/**
-          order: 0
-
-      x-forwarded:
-        prefix-enabled: false
+                    # 2) REST under /ws/**
+                    - id: ws-api
+                      uri: lb://ws-gateway
+                      predicates:
+                        - Path=/ws/**
+                      order: 0
 
 knife4j:
   # Integrate Swagger docs，refer https://doc.xiaominfo.com/docs/action/springcloud-gateway
@@ -159,8 +160,6 @@ sa-token:
   is-log: true
   # Token style
   token-style: uuid
-  cookie:
-    http-only: true
 
 # Heath check
 management:
@@ -181,9 +180,9 @@ management:
             - "*"
           exclude:
             - ${management.endpoint.health.group.readiness.include}
-    prometheus:
-      enabled: true
-  metrics:
-    export:
-      prometheus:
+    Prometheus:
+      access: unrestricted
+  Prometheus:
+    metrics:
+      export:
         enabled: true
