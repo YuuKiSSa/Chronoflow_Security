@@ -62,16 +62,18 @@
         <easyexcel.version>3.3.4</easyexcel.version>
         <zxing-core.version>3.5.3</zxing-core.version>
         <zxing-javase.version>3.5.3</zxing-javase.version>
-        <spring.cloud.gcp.version>7.4.4</spring.cloud.gcp.version>
+        <pubsub.version>7.4.2</pubsub.version>
+        <gcs.version>2.62.1</gcs.version>
         <aws.sdk.version>2.26.26</aws.sdk.version>
-        <protobuf.version>3.25.5</protobuf.version>
+        <protobuf.version>4.33.3</protobuf.version>
         <jakarata.email.version>2.0.2</jakarata.email.version>
         <commpns.lang.version>3.18.0</commpns.lang.version>
         <assertj.version>3.27.7</assertj.version>
-        <firebase.version>9.7.0</firebase.version>
-        <io.grpc.version>1.79.0</io.grpc.version>
+        <firebase.version>9.7.1</firebase.version>
         <gatling.version>3.14.9</gatling.version>
         <logback.version>1.5.27</logback.version>
+        <bouncycastle.version>1.78.1</bouncycastle.version>
+        <netty.shaded.version>1.79.0</netty.shaded.version>
 
         <!-- SonarQube 測試覆蓋排除項（所有自動生成的類不統計、不掃描） -->
         <sonar.coverage.exclusions>
@@ -107,7 +109,7 @@
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-netty-shaded</artifactId>
-                <version>${io.grpc.version}</version>
+                <version>${netty.shaded.version}</version>
             </dependency>
 
             <dependency>
@@ -116,6 +118,18 @@
                 <version>${netty.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
 
             <dependency>
@@ -362,13 +376,16 @@
                 <version>${zxing-javase.version}</version>
             </dependency>
 
-            <!-- Spring Cloud GCP BOM -->
             <dependency>
                 <groupId>com.google.cloud</groupId>
-                <artifactId>spring-cloud-gcp-dependencies</artifactId>
-                <version>${spring.cloud.gcp.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <artifactId>spring-cloud-gcp-starter-pubsub</artifactId>
+                <version>${pubsub.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>google-cloud-storage</artifactId>
+                <version>${gcs.version}</version>
             </dependency>
 
             <!-- AWS SDK v2 BOM -->
