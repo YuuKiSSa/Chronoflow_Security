@@ -43,7 +43,7 @@ spring:
       pubsub:
         enabled: true
       firestore:
-        enabled: false
+        enabled: true
 
     sentinel:
       enabled: true

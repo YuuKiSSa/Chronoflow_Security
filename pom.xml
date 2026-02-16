@@ -129,7 +129,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- ✅ Spring Cloud GCP BOM (THIS manages grpc/protobuf/gax versions safely) -->
+            <!-- Spring Cloud GCP BOM (THIS manages grpc/protobuf/gax versions safely) -->
             <dependency>
                 <groupId>com.google.cloud</groupId>
                 <artifactId>spring-cloud-gcp-dependencies</artifactId>

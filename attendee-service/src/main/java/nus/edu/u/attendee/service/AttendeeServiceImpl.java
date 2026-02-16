@@ -259,7 +259,7 @@ public class AttendeeServiceImpl implements AttendeeService {
                 try {
                     sendEmail(attendee, event, qrCode);
                 } catch (Exception e) {
-                    log.error("Failed to send email to {}: {}", info.getEmail(), e.getMessage());
+                    log.error("Failed to send email to {}: {}", info.getEmail(), e);
                 }
 
                 successList.add(
