@@ -9,8 +9,6 @@ import nus.edu.u.domain.dto.common.NotificationDeviceViewDTO;
 import nus.edu.u.enums.common.DeviceStatus;
 import nus.edu.u.enums.push.PushPlatform;
 import nus.edu.u.repositories.common.NotificationDeviceRepository;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +23,6 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
 
     @Override
     @Transactional
-    @CacheEvict(value = CACHE_NAME, key = "#userId") // bust the view cache for this user
     public void register(String userId, DeviceRegisterDTO dto) {
         if (userId == null || userId.isBlank())
             throw new IllegalArgumentException("userId is required");
@@ -67,10 +64,6 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
 
     @Override
     @Transactional
-    @CacheEvict(
-            value = CACHE_NAME,
-            allEntries = true,
-            condition = "#token != null") // simplest: evict all user caches
     public void revokeByToken(String token) {
         if (token == null || token.isBlank()) return;
         repo.findByToken(token.trim())
@@ -79,6 +72,24 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
                             d.setStatus(DeviceStatus.REVOKED);
                             repo.save(d);
                         });
+    }
+
+    @Override
+    @Transactional
+    public void revokeByTokenForUser(String userId, String token) {
+        if (userId == null || userId.isBlank())
+            throw new IllegalArgumentException("userId is required");
+        if (token == null || token.isBlank()) return;
+
+        repo.findByUserIdAndToken(userId, token.trim())
+                .ifPresent(d -> {
+                    d.setStatus(DeviceStatus.REVOKED);
+                    repo.save(d);
+                });
+
+        // Intentionally do nothing if not found:
+        // - idempotent
+        // - avoids leaking whether a token exists / belongs to someone else
     }
 
     /** Keep for internal use (no caching) */
@@ -93,7 +104,6 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
     /** Cache the thin DTOs */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = CACHE_NAME, key = "#userId")
     public List<NotificationDeviceViewDTO> activeDeviceViews(String userId) {
         if (userId == null || userId.isBlank())
             throw new IllegalArgumentException("userId is required");
@@ -111,7 +121,6 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "devices:activeByUser", key = "#userId")
     public void revokeAllForUser(String userId) {
         var active = repo.findByUserIdAndStatus(userId, DeviceStatus.ACTIVE);
         for (var d : active) {

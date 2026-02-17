@@ -1,5 +1,6 @@
 package nus.edu.u.controllers;
 
+import cn.dev33.satoken.stp.StpUtil;
 import lombok.RequiredArgsConstructor;
 import nus.edu.u.domain.dto.common.DeviceRegisterDTO;
 import nus.edu.u.enums.push.PushPlatform;
@@ -15,23 +16,32 @@ public class DeviceRegisterController {
     private final DeviceRegistryService deviceRegistryService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerDevice(
-            @RequestParam("userId") String userId, // or resolve from security
-            @RequestBody DeviceRegisterDTO dto) {
+    public ResponseEntity<Void> registerDevice(@RequestBody DeviceRegisterDTO dto) {
+        // Ensures request is authenticated; throws if not logged in
+        StpUtil.checkLogin();
+
+        String userId = String.valueOf(StpUtil.getLoginIdAsLong());
+
         if (dto.getPlatform() == null) dto.setPlatform(PushPlatform.WEB);
         deviceRegistryService.register(userId, dto);
+
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/revoke")
     public ResponseEntity<Void> revokeByToken(@RequestParam("token") String token) {
-        deviceRegistryService.revokeByToken(token);
+        String userId = String.valueOf(StpUtil.getLoginIdAsLong());
+        deviceRegistryService.revokeByTokenForUser(userId, token);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/revoke-all")
-    public ResponseEntity<Void> revokeAll(@RequestParam("userId") String userId) {
+    public ResponseEntity<Void> revokeAll() {
+        StpUtil.checkLogin();
+
+        String userId = String.valueOf(StpUtil.getLoginIdAsLong());
         deviceRegistryService.revokeAllForUser(userId);
+
         return ResponseEntity.ok().build();
     }
 }

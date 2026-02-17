@@ -10,6 +10,8 @@ public interface DeviceRegistryService {
 
     void revokeByToken(String token);
 
+    void revokeByTokenForUser(String userId, String token);
+
     /** Old: returns entities (no caching) */
     List<NotificationDeviceDO> activeDevices(String userId);
 
