@@ -19,4 +19,6 @@ public interface DeviceRegistryService {
     List<NotificationDeviceViewDTO> activeDeviceViews(String userId);
 
     void revokeAllForUser(String userId);
+
+    void revokeByDeviceId(String userId, String deviceId);
 }

@@ -24,42 +24,69 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
     @Override
     @Transactional
     public void register(String userId, DeviceRegisterDTO dto) {
-        if (userId == null || userId.isBlank())
-            throw new IllegalArgumentException("userId is required");
-        if (dto == null || dto.getToken() == null || dto.getToken().isBlank())
-            throw new IllegalArgumentException("token is required");
+        if (userId == null || userId.isBlank()) throw new IllegalArgumentException("userId is required");
+        if (dto == null) throw new IllegalArgumentException("body is required");
 
-        final String token = dto.getToken().trim();
-        final PushPlatform platform =
-                Optional.ofNullable(dto.getPlatform()).orElse(PushPlatform.WEB);
+        String deviceId = dto.getDeviceId() == null ? null : dto.getDeviceId().trim();
+        String token = dto.getToken() == null ? null : dto.getToken().trim();
 
-        var existing = repo.findByToken(token).orElse(null);
-        if (existing == null) {
-            try {
-                repo.save(
-                        NotificationDeviceDO.builder()
-                                .userId(userId)
-                                .platform(platform)
-                                .token(token)
-                                .status(DeviceStatus.ACTIVE)
-                                .build());
-                return;
-            } catch (DataIntegrityViolationException race) {
-                existing = repo.findByToken(token).orElse(null);
-            }
+        if (deviceId == null || deviceId.isBlank()) throw new IllegalArgumentException("deviceId is required");
+        if (token == null || token.isBlank()) throw new IllegalArgumentException("token is required");
+
+        PushPlatform platform = Optional.ofNullable(dto.getPlatform()).orElse(PushPlatform.WEB);
+
+        // 1) Upsert by (userId, deviceId)
+        NotificationDeviceDO device =
+                repo.findByUserIdAndDeviceId(userId, deviceId).orElse(null);
+
+        if (device == null) {
+            // optional: if token is already stored elsewhere, revoke it (enforce uniqueness)
+            repo.findByToken(token).ifPresent(other -> {
+                // If the token is linked to a different device record, revoke that record
+                // (or you can delete it, but revoke is safer/auditable)
+                if (!other.getUserId().equals(userId) || !other.getDeviceId().equals(deviceId)) {
+                    other.setStatus(DeviceStatus.REVOKED);
+                    repo.save(other);
+                }
+            });
+
+            repo.save(NotificationDeviceDO.builder()
+                    .userId(userId)
+                    .deviceId(deviceId)
+                    .platform(platform)
+                    .token(token)
+                    .status(DeviceStatus.ACTIVE)
+                    .build());
+            return;
         }
 
-        if (existing != null) {
-            if (existing.getUserId().equals(userId)
-                    && existing.getPlatform() == platform
-                    && existing.getStatus() == DeviceStatus.ACTIVE) {
-                return; // no change
-            }
-            existing.setUserId(userId);
-            existing.setPlatform(platform);
-            existing.setStatus(DeviceStatus.ACTIVE);
-            repo.save(existing);
+        // 2) Existing device row: update mutable fields
+        boolean changed = false;
+
+        if (!token.equals(device.getToken())) {
+            // optional: enforce token uniqueness by revoking the other row that holds this token
+            repo.findByToken(token).ifPresent(other -> {
+                if (!other.getId().equals(device.getId())) {
+                    other.setStatus(DeviceStatus.REVOKED);
+                    repo.save(other);
+                }
+            });
+
+            device.setToken(token);
+            changed = true;
         }
+
+        if (device.getPlatform() != platform) {
+            device.setPlatform(platform);
+            changed = true;
+        }
+
+        if (device.getStatus() != DeviceStatus.ACTIVE) {
+            device.setStatus(DeviceStatus.ACTIVE);
+            changed = true;
+        }
+
+        if (changed) repo.save(device);
     }
 
     @Override
@@ -72,6 +99,19 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
                             d.setStatus(DeviceStatus.REVOKED);
                             repo.save(d);
                         });
+    }
+
+    @Override
+    @Transactional
+    public void revokeByDeviceId(String userId, String deviceId) {
+        if (userId == null || userId.isBlank()) throw new IllegalArgumentException("userId is required");
+        if (deviceId == null || deviceId.isBlank()) throw new IllegalArgumentException("deviceId is required");
+
+        repo.findByUserIdAndDeviceId(userId, deviceId.trim())
+                .ifPresent(d -> {
+                    d.setStatus(DeviceStatus.REVOKED);
+                    repo.save(d);
+                });
     }
 
     @Override
