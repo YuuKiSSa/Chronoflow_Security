@@ -1,5 +1,6 @@
 package nus.edu.u.user.service.auth;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.vo.auth.LoginReqVO;
 import nus.edu.u.user.domain.vo.auth.LoginRespVO;
@@ -43,4 +44,6 @@ public interface AuthService {
     void logout(String token);
 
     LoginRespVO refresh(String refreshTokenVO);
+
+    JWTClaimsSet verifyJwtSignature(String token) throws Exception;
 }

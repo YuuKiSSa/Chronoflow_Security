@@ -7,6 +7,7 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.annotation.Resource;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,8 @@ import nus.edu.u.user.mapper.tenant.TenantMapper;
 import nus.edu.u.user.mapper.user.UserMapper;
 import nus.edu.u.user.mapper.user.UserRoleMapper;
 import nus.edu.u.user.publisher.organizer.OrganizerNotificationPublisher;
+import nus.edu.u.user.service.auth.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,6 +80,10 @@ public class RegServiceImpl implements RegService {
     public static final int ORGANIZATION_CODE_LENGTH = 10;
 
     public static final int MAX_RETRY_GENERATE_CODE = 5;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private AuthService authService;
 
     public RegSearchRespVO search(RegSearchReqVO regSearchReqVO) {
         // Select tenant
@@ -243,8 +250,8 @@ public class RegServiceImpl implements RegService {
 
     @Override
     @Transactional
-    public boolean registerAsOrganizer(SsoRegOrganizerReqVO ssoRegOrganizerReqVO) {
-        //TODO Verify JWT signature
+    public boolean registerAsOrganizer(SsoRegOrganizerReqVO ssoRegOrganizerReqVO) throws Exception {
+        JWTClaimsSet claimsSet = authService.verifyJwtSignature(ssoRegOrganizerReqVO.getJwtToken());
         JWT jwtToken = JWTUtil.parseToken(ssoRegOrganizerReqVO.getJwtToken());
         String email = jwtToken.getPayload("email").toString();
         String name = jwtToken.getPayload("name").toString();

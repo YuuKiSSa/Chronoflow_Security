@@ -27,5 +27,5 @@ public interface RegService {
 
     boolean registerAsOrganizer(RegOrganizerReqVO regOrganizerReqVO);
 
-    boolean registerAsOrganizer(SsoRegOrganizerReqVO ssoRegOrganizerReqVO);
+    boolean registerAsOrganizer(SsoRegOrganizerReqVO ssoRegOrganizerReqVO) throws Exception;
 }
