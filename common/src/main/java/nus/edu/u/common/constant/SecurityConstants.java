@@ -29,4 +29,6 @@ public class SecurityConstants {
     public static final int REFRESH_TOKEN_REMEMBER_COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
     public static final String MOBILE_SSO_JWT_ISSUER = "https://accounts.google.com";
+
+    public static final int ONE_TIME_TOKEN_EXPIRY_SECS=60;
 }
