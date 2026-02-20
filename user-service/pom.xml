@@ -13,23 +13,6 @@
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
 
-    <properties>
-        <spring.cloud.gcp.version>7.3.1</spring.cloud.gcp.version>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <!-- Spring Cloud GCP BOM -->
-            <dependency>
-                <groupId>com.google.cloud</groupId>
-                <artifactId>spring-cloud-gcp-dependencies</artifactId>
-                <version>${spring.cloud.gcp.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
 
         <dependency>
@@ -64,6 +47,26 @@
         <dependency>
             <groupId>nus.edu.u</groupId>
             <artifactId>shared-api</artifactId>
+        </dependency>
+
+        <!-- Firebase Admin SDK -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.3.0</version>
+        </dependency>
+
+        <!-- Apache Commons Codec for SHA-256 fingerprinting -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+
+        <!-- TOTP (Time-based One-Time Password) library -->
+        <dependency>
+            <groupId>dev.samstevens.totp</groupId>
+            <artifactId>totp</artifactId>
+            <version>1.7.1</version>
         </dependency>
 
     </dependencies>
