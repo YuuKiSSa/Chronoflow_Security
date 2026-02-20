@@ -119,6 +119,7 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
                         .taskId(String.valueOf(task.getId()))
                         .eventId(String.valueOf(event.getId()))
                         .assigneeUserId(String.valueOf(assignee.getId()))
+                        .assignerUserId(String.valueOf(assigner.getId()))
                         .assigneeEmail(assignee.getEmail())
                         .assignerName(assigner != null ? assigner.getUsername() : "System")
                         .taskName(task.getName())
@@ -801,4 +802,5 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         eventVO.setRemark(event.getRemark());
         return eventVO;
     }
+
 }

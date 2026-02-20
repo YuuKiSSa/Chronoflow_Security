@@ -1,5 +1,6 @@
 package nus.edu.u.shared.rpc.user;
 
+import java.nio.file.attribute.UserPrincipal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -13,4 +14,6 @@ public interface UserRpcService {
     TenantDTO getTenantById(Long tenantId);
 
     List<UserProfileDTO> getEnabledUserProfiles();
+
+    UserProfileDTO getUserById(Long userId);
 }
