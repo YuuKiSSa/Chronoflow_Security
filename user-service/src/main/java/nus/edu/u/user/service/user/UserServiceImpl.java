@@ -6,19 +6,24 @@ import static nus.edu.u.framework.mybatis.MybatisPlusConfig.getCurrentTenantId;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import jakarta.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nus.edu.u.common.constant.SecurityConstants;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.common.exception.ServiceException;
 import nus.edu.u.shared.rpc.notification.dto.member.RegSearchReqDTO;
 import nus.edu.u.user.domain.dataobject.tenant.TenantDO;
 import nus.edu.u.user.domain.dataobject.role.RoleDO;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
+import nus.edu.u.user.domain.dataobject.user.UserOttDO;
 import nus.edu.u.user.domain.dataobject.user.UserRoleDO;
 import nus.edu.u.user.domain.dto.*;
 import nus.edu.u.user.mapper.tenant.TenantMapper;
@@ -27,6 +32,7 @@ import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
 import nus.edu.u.user.enums.user.UserStatusEnum;
 import nus.edu.u.user.mapper.role.RoleMapper;
 import nus.edu.u.user.mapper.user.UserMapper;
+import nus.edu.u.user.mapper.user.UserOttMapper;
 import nus.edu.u.user.mapper.user.UserRoleMapper;
 import nus.edu.u.user.publisher.member.MemberNotificationPublisher;
 import org.springframework.context.annotation.Lazy;
@@ -56,6 +62,8 @@ public class UserServiceImpl implements UserService {
 
     @Resource private PasswordEncoder passwordEncoder;
 
+    @Resource private UserOttMapper userOttMapper;
+
     // Self-injection proxy to avoid transaction enhancement failure caused by internal calls of
     // similar methods
     @Resource @Lazy private UserService self;
@@ -72,6 +80,32 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean isPasswordMatch(String rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+
+    @Override
+    public void generateToken(String token, long userId){
+        UserOttDO userOttDO = UserOttDO.builder().id(UUID.randomUUID().toString()).userId(userId).token(token).createdAt(LocalDateTime.now()).expiresAt(LocalDateTime.now().plusSeconds(SecurityConstants.ONE_TIME_TOKEN_EXPIRY_SECS)).build();
+        userOttMapper.insert(userOttDO);
+    }
+
+    @Override
+    public UserDO retrieveUserFromOTT(String ott) throws Exception {
+        int rows = userOttMapper.update(null,
+                new UpdateWrapper<UserOttDO>()
+                        .eq("token", ott)
+                        .isNull("used_at")
+                        .gt("expires_at", LocalDateTime.now())
+                        .set("used_at", LocalDateTime.now())
+        );
+        if (rows == 0) {
+            throw new Exception("Invalid or expired token");
+        }
+
+        UserOttDO userOttDo = userOttMapper.selectOne(
+                new QueryWrapper<UserOttDO>()
+                        .eq("token", ott)
+        );
+        return userMapper.selectUserById(userOttDo.getUserId());
     }
 
     @Override

@@ -5,13 +5,12 @@ import static nus.edu.u.common.core.domain.CommonResult.success;
 import static nus.edu.u.common.enums.ErrorCodeConstants.REG_FAIL;
 
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.core.domain.CommonResult;
-import nus.edu.u.user.domain.vo.reg.RegMemberReqVO;
-import nus.edu.u.user.domain.vo.reg.RegOrganizerReqVO;
-import nus.edu.u.user.domain.vo.reg.RegSearchReqVO;
-import nus.edu.u.user.domain.vo.reg.RegSearchRespVO;
+import nus.edu.u.common.exception.ErrorCode;
+import nus.edu.u.user.domain.vo.reg.*;
 import nus.edu.u.user.service.user.RegService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,5 +49,19 @@ public class RegController {
             @RequestBody @Valid RegOrganizerReqVO regOrganizerReqVO) {
         boolean isSuccess = regService.registerAsOrganizer(regOrganizerReqVO);
         return isSuccess ? success(true) : error(REG_FAIL);
+    }
+
+
+
+    @PostMapping("/sso-organizer")
+    public CommonResult<Boolean> registerAsOrganizer(
+            @RequestBody @Valid SsoRegOrganizerReqVO ssoRegOrganizerReqVO) {
+        try{
+            boolean isSuccess = regService.registerAsOrganizer(ssoRegOrganizerReqVO);
+            return isSuccess ? success(true) : error(REG_FAIL);
+        }
+        catch (Exception e){
+            return error(REG_FAIL);
+        }
     }
 }

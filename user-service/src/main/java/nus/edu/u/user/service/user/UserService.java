@@ -78,6 +78,10 @@ public interface UserService {
 
     List<UserPermissionDTO> getUserPermissions(Long userId);
 
+    void generateToken(String token, long userId);
+
+    UserDO retrieveUserFromOTT(String ott) throws Exception;
+
     // Firebase Authentication methods
 
     /**

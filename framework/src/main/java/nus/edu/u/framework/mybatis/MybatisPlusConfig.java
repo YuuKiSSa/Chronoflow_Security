@@ -96,6 +96,7 @@ public class MybatisPlusConfig {
                                 // Return true to ignore the table and not join the tenant
                                 // conditions.
                                 return "sys_dict_data".equals(tableName)
+                                        || "sys_user_ott".equals(tableName)
                                         || "sys_dict_type".equals(tableName)
                                         || "sys_tenant".equals(tableName)
                                         || "sys_permission".equals(tableName);
