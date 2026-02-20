@@ -27,7 +27,9 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.annotation.Resource;
 
 import java.net.URL;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,6 +74,8 @@ public class AuthServiceImpl implements AuthService {
     @Value("${MOBILE_CLIENT_ID}")
     private String mobileClientId;
 
+    private final SecureRandom secureRandom = new SecureRandom();
+
     @Override
     public UserDO authenticate(String username, String password) {
         // 1.Check username first
@@ -114,13 +118,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    public LoginRespVO mobileSsoLogin(String token) throws Exception {
+    public UserDO mobileSsoLogin(String token) throws Exception {
         JWTClaimsSet claims = this.verifyJwtSignature(token);
         JWT jwtToken = JWTUtil.parseToken(token);
         String email = jwtToken.getPayload("email").toString();
-        UserDO userDO = authenticate(email);
-        userDO.setLoginTime(LocalDateTime.now());
-        return handleLogin(userDO, false, "");
+        return authenticate(email);
+    }
+
+    public String generateOTT(long userId){
+        byte[] bytes = new byte[32];
+        secureRandom.nextBytes(bytes);
+        String token =  Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        userService.generateToken(token, userId);
+        return token;
     }
 
     public JWTClaimsSet verifyJwtSignature(String token) throws Exception {
@@ -143,6 +153,11 @@ public class AuthServiceImpl implements AuthService {
         return jwtProcessor.process(token, null);
     }
 
+    public LoginRespVO validateOTT(String ott) throws Exception {
+        UserDO userDO = userService.retrieveUserFromOTT(ott);
+        return handleLogin(userDO, true, ott);
+
+    }
     private LoginRespVO handleLogin(UserDO userDO, boolean rememberMe, String refreshToken) {
         // 1.Create UserTokenDTO which contains parameters required to create a token
         UserTokenDTO userTokenDTO = new UserTokenDTO();

@@ -22,8 +22,11 @@ public interface AuthService {
      */
     UserDO authenticate(String username, String password);
 
+    String generateOTT(long userId);
 
-    LoginRespVO mobileSsoLogin(String jwtToken) throws Exception;
+    UserDO mobileSsoLogin(String jwtToken) throws Exception;
+
+    LoginRespVO validateOTT(String ott) throws Exception;
     /**
      * Login service
      *
