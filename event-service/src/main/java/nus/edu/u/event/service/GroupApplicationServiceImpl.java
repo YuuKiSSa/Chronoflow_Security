@@ -59,6 +59,7 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
 
     @DubboReference(check = false)
     private UserRpcService userRpcService;
+
     private final DeptMapper deptMapper;
     private final EventMapper eventMapper;
     private final UserGroupMapper userGroupMapper;

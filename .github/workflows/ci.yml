@@ -19,7 +19,7 @@ jobs:
       - name: Set all services list
         id: set-services
         run: |
-          echo "all=[\"user-service\"]" >> $GITHUB_OUTPUT
+          echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\", \"file-service\", \"event-service\", \"attendee-service\"]" >> $GITHUB_OUTPUT
 
   build-and-test:
     name: Build & JUnit & Lint- ${{ matrix.service }}
@@ -53,6 +53,7 @@ jobs:
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
+        if: hashFiles(format('{0}/target/site/jacoco/', matrix.service)) != ''
         with:
           name: ${{ matrix.service }}-test-results
           path: ./${{ matrix.service }}/target/site/jacoco/*
