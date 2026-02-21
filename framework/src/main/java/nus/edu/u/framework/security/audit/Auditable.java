@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
  * Marks a method for audit logging.
  *
  * <p>Usage example:
+ *
  * <pre>
  * &#64;Auditable(operation = "Assign Roles", type = AuditType.ADMIN_ACTION,
  *            targetType = "UserRole", targetId = "#reqVO.userId")

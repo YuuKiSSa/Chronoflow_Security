@@ -65,8 +65,11 @@ class SecurityAuditLoggerTest {
     void log_criticalEvent_persistsToDbSync() {
         logger.setAuditLogWriterService(writerService);
 
-        logger.log(SecurityAuditLogger.SecurityEvent.REFRESH_TOKEN_REUSE_DETECTED,
-                "200", "192.168.1.1", "Reuse detected");
+        logger.log(
+                SecurityAuditLogger.SecurityEvent.REFRESH_TOKEN_REUSE_DETECTED,
+                "200",
+                "192.168.1.1",
+                "Reuse detected");
 
         verify(writerService).writeSync(any(AuditLogDO.class));
         verify(writerService, never()).writeAsync(any());
@@ -76,8 +79,11 @@ class SecurityAuditLoggerTest {
     void log_tokenFingerprintMismatch_persistsSync() {
         logger.setAuditLogWriterService(writerService);
 
-        logger.log(SecurityAuditLogger.SecurityEvent.TOKEN_FINGERPRINT_MISMATCH,
-                "300", "10.0.0.2", "Fingerprint mismatch");
+        logger.log(
+                SecurityAuditLogger.SecurityEvent.TOKEN_FINGERPRINT_MISMATCH,
+                "300",
+                "10.0.0.2",
+                "Fingerprint mismatch");
 
         verify(writerService).writeSync(any(AuditLogDO.class));
         verify(writerService, never()).writeAsync(any());
@@ -96,8 +102,11 @@ class SecurityAuditLoggerTest {
     void log_nonNumericUserId_storesInExtra() {
         logger.setAuditLogWriterService(writerService);
 
-        logger.log(SecurityAuditLogger.SecurityEvent.LOGIN_SUCCESS,
-                "firebase-uid-abc123", "10.0.0.1", "Firebase login");
+        logger.log(
+                SecurityAuditLogger.SecurityEvent.LOGIN_SUCCESS,
+                "firebase-uid-abc123",
+                "10.0.0.1",
+                "Firebase login");
 
         ArgumentCaptor<AuditLogDO> captor = ArgumentCaptor.forClass(AuditLogDO.class);
         verify(writerService).writeAsync(captor.capture());
@@ -110,8 +119,11 @@ class SecurityAuditLoggerTest {
     void log_nullUserId_handlesGracefully() {
         logger.setAuditLogWriterService(writerService);
 
-        logger.log(SecurityAuditLogger.SecurityEvent.RATE_LIMIT_EXCEEDED,
-                null, "10.0.0.1", "Rate limited");
+        logger.log(
+                SecurityAuditLogger.SecurityEvent.RATE_LIMIT_EXCEEDED,
+                null,
+                "10.0.0.1",
+                "Rate limited");
 
         ArgumentCaptor<AuditLogDO> captor = ArgumentCaptor.forClass(AuditLogDO.class);
         verify(writerService).writeAsync(captor.capture());
@@ -125,13 +137,13 @@ class SecurityAuditLoggerTest {
         logger.setAuditLogWriterService(writerService);
 
         SecurityAuditLogger.SecurityEvent[] normalEvents = {
-                SecurityAuditLogger.SecurityEvent.LOGIN_SUCCESS,
-                SecurityAuditLogger.SecurityEvent.LOGIN_FAILED_BAD_CREDENTIALS,
-                SecurityAuditLogger.SecurityEvent.LOGOUT,
-                SecurityAuditLogger.SecurityEvent.TOKEN_REFRESHED,
-                SecurityAuditLogger.SecurityEvent.PERMISSION_DENIED,
-                SecurityAuditLogger.SecurityEvent.RATE_LIMIT_EXCEEDED,
-                SecurityAuditLogger.SecurityEvent.USER_REGISTERED
+            SecurityAuditLogger.SecurityEvent.LOGIN_SUCCESS,
+            SecurityAuditLogger.SecurityEvent.LOGIN_FAILED_BAD_CREDENTIALS,
+            SecurityAuditLogger.SecurityEvent.LOGOUT,
+            SecurityAuditLogger.SecurityEvent.TOKEN_REFRESHED,
+            SecurityAuditLogger.SecurityEvent.PERMISSION_DENIED,
+            SecurityAuditLogger.SecurityEvent.RATE_LIMIT_EXCEEDED,
+            SecurityAuditLogger.SecurityEvent.USER_REGISTERED
         };
 
         for (SecurityAuditLogger.SecurityEvent event : normalEvents) {

@@ -14,9 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * Security audit logger for tracking authentication and authorization events.
- * Logs to both structured log output and Redis for retention.
- * When an {@link AuditLogWriterService} is wired in, events are also persisted to the audit_log DB table.
+ * Security audit logger for tracking authentication and authorization events. Logs to both
+ * structured log output and Redis for retention. When an {@link AuditLogWriterService} is wired in,
+ * events are also persisted to the audit_log DB table.
  */
 @RequiredArgsConstructor
 @Slf4j
@@ -25,30 +25,32 @@ public class SecurityAuditLogger {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
-    @Setter
-    private AuditLogWriterService auditLogWriterService;
+    @Setter private AuditLogWriterService auditLogWriterService;
 
     private static final String AUDIT_KEY_PREFIX = "security:audit:log:";
     private static final long AUDIT_RETENTION_DAYS = 7;
 
     /** Critical events that require synchronous DB persistence. */
-    private static final Set<SecurityEvent> CRITICAL_EVENTS = Set.of(
-            SecurityEvent.REFRESH_TOKEN_REUSE_DETECTED,
-            SecurityEvent.TOKEN_FINGERPRINT_MISMATCH
-    );
+    private static final Set<SecurityEvent> CRITICAL_EVENTS =
+            Set.of(
+                    SecurityEvent.REFRESH_TOKEN_REUSE_DETECTED,
+                    SecurityEvent.TOKEN_FINGERPRINT_MISMATCH);
 
-    /** Events that represent a failure (resultCode = -1). All others are treated as success (resultCode = 0). */
-    private static final Set<SecurityEvent> FAILURE_EVENTS = Set.of(
-            SecurityEvent.LOGIN_FAILED_BAD_CREDENTIALS,
-            SecurityEvent.LOGIN_FAILED_EMAIL_NOT_VERIFIED,
-            SecurityEvent.LOGIN_FAILED_USER_NOT_FOUND,
-            SecurityEvent.LOGIN_FAILED_ACCOUNT_DISABLED,
-            SecurityEvent.LOGIN_FAILED_INVALID_TOKEN,
-            SecurityEvent.TOKEN_FINGERPRINT_MISMATCH,
-            SecurityEvent.REFRESH_TOKEN_REUSE_DETECTED,
-            SecurityEvent.PERMISSION_DENIED,
-            SecurityEvent.RATE_LIMIT_EXCEEDED
-    );
+    /**
+     * Events that represent a failure (resultCode = -1). All others are treated as success
+     * (resultCode = 0).
+     */
+    private static final Set<SecurityEvent> FAILURE_EVENTS =
+            Set.of(
+                    SecurityEvent.LOGIN_FAILED_BAD_CREDENTIALS,
+                    SecurityEvent.LOGIN_FAILED_EMAIL_NOT_VERIFIED,
+                    SecurityEvent.LOGIN_FAILED_USER_NOT_FOUND,
+                    SecurityEvent.LOGIN_FAILED_ACCOUNT_DISABLED,
+                    SecurityEvent.LOGIN_FAILED_INVALID_TOKEN,
+                    SecurityEvent.TOKEN_FINGERPRINT_MISMATCH,
+                    SecurityEvent.REFRESH_TOKEN_REUSE_DETECTED,
+                    SecurityEvent.PERMISSION_DENIED,
+                    SecurityEvent.RATE_LIMIT_EXCEEDED);
 
     /** Security events to track. */
     public enum SecurityEvent {
@@ -124,8 +126,8 @@ public class SecurityAuditLogger {
     }
 
     /**
-     * Build an AuditLogDO from the security event and persist via the writer service.
-     * Critical events are written synchronously; others asynchronously.
+     * Build an AuditLogDO from the security event and persist via the writer service. Critical
+     * events are written synchronously; others asynchronously.
      */
     private void persistToDb(SecurityEvent event, String userId, String clientIp, String detail) {
         if (auditLogWriterService == null) {
@@ -141,17 +143,20 @@ public class SecurityAuditLogger {
                 }
             }
 
-            AuditLogDO auditLog = AuditLogDO.builder()
-                    .userId(parsedUserId)
-                    .userIp(clientIp)
-                    .module("security")
-                    .operation(event.name())
-                    .type(AuditType.SECURITY.getValue())
-                    .resultCode(FAILURE_EVENTS.contains(event) ? -1 : 0)
-                    .resultMsg(detail)
-                    .extra(parsedUserId == null && userId != null
-                            ? "{\"externalUserId\":\"" + userId + "\"}" : null)
-                    .build();
+            AuditLogDO auditLog =
+                    AuditLogDO.builder()
+                            .userId(parsedUserId)
+                            .userIp(clientIp)
+                            .module("security")
+                            .operation(event.name())
+                            .type(AuditType.SECURITY.getValue())
+                            .resultCode(FAILURE_EVENTS.contains(event) ? -1 : 0)
+                            .resultMsg(detail)
+                            .extra(
+                                    parsedUserId == null && userId != null
+                                            ? "{\"externalUserId\":\"" + userId + "\"}"
+                                            : null)
+                            .build();
 
             if (CRITICAL_EVENTS.contains(event)) {
                 auditLogWriterService.writeSync(auditLog);
@@ -159,7 +164,10 @@ public class SecurityAuditLogger {
                 auditLogWriterService.writeAsync(auditLog);
             }
         } catch (Exception e) {
-            log.warn("[SECURITY_AUDIT] Failed to persist to DB: event={}, error={}", event, e.getMessage());
+            log.warn(
+                    "[SECURITY_AUDIT] Failed to persist to DB: event={}, error={}",
+                    event,
+                    e.getMessage());
         }
     }
 

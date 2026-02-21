@@ -40,7 +40,8 @@ class RequestAuditFilterTest {
     void setUp() {
         when(reactiveRedisTemplate.opsForList()).thenReturn(listOperations);
         when(listOperations.rightPush(anyString(), anyString())).thenReturn(Mono.just(1L));
-        when(reactiveRedisTemplate.expire(anyString(), any(Duration.class))).thenReturn(Mono.just(true));
+        when(reactiveRedisTemplate.expire(anyString(), any(Duration.class)))
+                .thenReturn(Mono.just(true));
         filter = new RequestAuditFilter(reactiveRedisTemplate);
     }
 
@@ -51,12 +52,11 @@ class RequestAuditFilterTest {
 
     @Test
     void filter_postToAuditedPath_writesToRedis() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("/users/roles").build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(MockServerHttpRequest.post("/users/roles").build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         String expectedKeyPrefix = "gateway:audit:log:" + LocalDate.now();
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
@@ -75,60 +75,55 @@ class RequestAuditFilterTest {
 
     @Test
     void filter_putToAuditedPath_writesToRedis() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.put("/events/123").build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(MockServerHttpRequest.put("/events/123").build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         verify(listOperations).rightPush(anyString(), anyString());
     }
 
     @Test
     void filter_patchToAuditedPath_writesToRedis() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.patch("/tasks/42").build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(MockServerHttpRequest.patch("/tasks/42").build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         verify(listOperations).rightPush(anyString(), anyString());
     }
 
     @Test
     void filter_deleteToAuditedPath_writesToRedis() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.delete("/attendees/99").build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(MockServerHttpRequest.delete("/attendees/99").build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         verify(listOperations).rightPush(anyString(), anyString());
     }
 
     @Test
     void filter_getRequest_skipsAudit() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.get("/users/roles").build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(MockServerHttpRequest.get("/users/roles").build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         verify(listOperations, never()).rightPush(anyString(), anyString());
     }
 
     @Test
     void filter_postToNonAuditedPath_skipsAudit() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("/health").build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(MockServerHttpRequest.post("/health").build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         verify(listOperations, never()).rightPush(anyString(), anyString());
     }
@@ -136,20 +131,26 @@ class RequestAuditFilterTest {
     @Test
     void filter_allAuditedPrefixes_areRecognized() {
         String[] prefixes = {
-                "/users/roles", "/users/permissions", "/users/organizer",
-                "/users/auth", "/events", "/tasks", "/attendees", "/api/files"
+            "/users/roles",
+            "/users/permissions",
+            "/users/organizer",
+            "/users/auth",
+            "/events",
+            "/tasks",
+            "/attendees",
+            "/api/files"
         };
 
         for (String prefix : prefixes) {
             // Reset mocks for each iteration
             when(listOperations.rightPush(anyString(), anyString())).thenReturn(Mono.just(1L));
 
-            MockServerWebExchange exchange = MockServerWebExchange.from(
-                    MockServerHttpRequest.post(prefix + "/test").build());
+            MockServerWebExchange exchange =
+                    MockServerWebExchange.from(
+                            MockServerHttpRequest.post(prefix + "/test").build());
             when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-            StepVerifier.create(filter.filter(exchange, chain))
-                    .verifyComplete();
+            StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
         }
 
         // 8 prefixes tested, each should write
@@ -158,14 +159,14 @@ class RequestAuditFilterTest {
 
     @Test
     void filter_capturesClientIpFromXForwardedFor() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("/events")
-                        .header("X-Forwarded-For", "203.0.113.50, 70.41.3.18")
-                        .build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(
+                        MockServerHttpRequest.post("/events")
+                                .header("X-Forwarded-For", "203.0.113.50, 70.41.3.18")
+                                .build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
         verify(listOperations).rightPush(anyString(), valueCaptor.capture());
@@ -174,14 +175,14 @@ class RequestAuditFilterTest {
 
     @Test
     void filter_capturesUserAgent() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("/events")
-                        .header("User-Agent", "TestAgent/1.0")
-                        .build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(
+                        MockServerHttpRequest.post("/events")
+                                .header("User-Agent", "TestAgent/1.0")
+                                .build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
         verify(listOperations).rightPush(anyString(), valueCaptor.capture());
@@ -190,14 +191,14 @@ class RequestAuditFilterTest {
 
     @Test
     void filter_capturesTraceId() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("/tasks")
-                        .header("X-Trace-Id", "abc-123-trace")
-                        .build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(
+                        MockServerHttpRequest.post("/tasks")
+                                .header("X-Trace-Id", "abc-123-trace")
+                                .build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
         verify(listOperations).rightPush(anyString(), valueCaptor.capture());
@@ -206,24 +207,23 @@ class RequestAuditFilterTest {
 
     @Test
     void filter_redisError_doesNotPropagate() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("/events").build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(MockServerHttpRequest.post("/events").build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
         when(listOperations.rightPush(anyString(), anyString()))
                 .thenReturn(Mono.error(new RuntimeException("Redis down")));
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
     }
 
     @Test
     void filter_capturesQueryString() {
-        MockServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.delete("/events/1?force=true").build());
+        MockServerWebExchange exchange =
+                MockServerWebExchange.from(
+                        MockServerHttpRequest.delete("/events/1?force=true").build());
         when(chain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(filter.filter(exchange, chain))
-                .verifyComplete();
+        StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
         ArgumentCaptor<String> valueCaptor = ArgumentCaptor.forClass(String.class);
         verify(listOperations).rightPush(anyString(), valueCaptor.capture());

@@ -23,8 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class AuditLogController {
 
-    @Resource
-    private AuditLogService auditLogService;
+    @Resource private AuditLogService auditLogService;
 
     @GetMapping
     @Operation(summary = "Get paginated audit logs with filters")

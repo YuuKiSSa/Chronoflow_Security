@@ -46,19 +46,20 @@ class AuditLogServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        sampleLog = AuditLogDO.builder()
-                .id(1L)
-                .userId(100L)
-                .module("user")
-                .operation("Create Role")
-                .type(2)
-                .method("POST")
-                .requestUrl("/users/roles")
-                .targetType("Role")
-                .targetId("5")
-                .resultCode(0)
-                .duration(42)
-                .build();
+        sampleLog =
+                AuditLogDO.builder()
+                        .id(1L)
+                        .userId(100L)
+                        .module("user")
+                        .operation("Create Role")
+                        .type(2)
+                        .method("POST")
+                        .requestUrl("/users/roles")
+                        .targetType("Role")
+                        .targetId("5")
+                        .resultCode(0)
+                        .duration(42)
+                        .build();
         sampleLog.setCreateTime(LocalDateTime.of(2025, 12, 1, 10, 30));
     }
 

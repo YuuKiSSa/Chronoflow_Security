@@ -11,11 +11,7 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.attendee.domain.dataobject.EventAttendeeDO;
-import nus.edu.u.framework.security.audit.AuditType;
-import nus.edu.u.framework.security.audit.Auditable;
-import nus.edu.u.attendee.domain.vo.attendee.AttendeeInfoRespVO;
-import nus.edu.u.attendee.domain.vo.attendee.AttendeeQrCodeRespVO;
-import nus.edu.u.attendee.domain.vo.attendee.AttendeeReqVO;
+import nus.edu.u.attendee.domain.vo.attendee.*;
 import nus.edu.u.attendee.domain.vo.checkin.CheckInRespVO;
 import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesReqVO;
 import nus.edu.u.attendee.domain.vo.checkin.GenerateQrCodesRespVO;
@@ -24,6 +20,8 @@ import nus.edu.u.attendee.mapper.EventAttendeeMapper;
 import nus.edu.u.attendee.publisher.AttendeeNotificationPublisher;
 import nus.edu.u.attendee.service.qrcode.QrCodeService;
 import nus.edu.u.common.enums.EventStatusEnum;
+import nus.edu.u.framework.security.audit.AuditType;
+import nus.edu.u.framework.security.audit.Auditable;
 import nus.edu.u.shared.rpc.events.EventRespDTO;
 import nus.edu.u.shared.rpc.events.EventRpcService;
 import nus.edu.u.shared.rpc.notification.dto.Attendee.AttendeeInviteReqDTO;
@@ -91,8 +89,11 @@ public class AttendeeServiceImpl implements AttendeeService {
     }
 
     @Override
-    @Auditable(operation = "Delete Attendee", type = AuditType.DATA_CHANGE,
-               targetType = "Attendee", targetId = "#attendeeId")
+    @Auditable(
+            operation = "Delete Attendee",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Attendee",
+            targetId = "#attendeeId")
     public void delete(Long attendeeId) {
         EventAttendeeDO attendee = attendeeMapper.selectById(attendeeId);
         if (ObjectUtil.isEmpty(attendee)) {
@@ -102,8 +103,11 @@ public class AttendeeServiceImpl implements AttendeeService {
     }
 
     @Override
-    @Auditable(operation = "Update Attendee", type = AuditType.DATA_CHANGE,
-               targetType = "Attendee", targetId = "#attendeeId")
+    @Auditable(
+            operation = "Update Attendee",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Attendee",
+            targetId = "#attendeeId")
     public AttendeeQrCodeRespVO update(Long attendeeId, AttendeeReqVO reqVO) {
         EventAttendeeDO attendee = attendeeMapper.selectById(attendeeId);
         if (ObjectUtil.isEmpty(attendee)) {
@@ -156,8 +160,11 @@ public class AttendeeServiceImpl implements AttendeeService {
 
     @Override
     @Transactional
-    @Auditable(operation = "Check In", type = AuditType.DATA_CHANGE,
-               targetType = "Attendee", targetId = "#token")
+    @Auditable(
+            operation = "Check In",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Attendee",
+            targetId = "#token")
     public CheckInRespVO checkIn(String token) {
         // 1. Validate token
         EventAttendeeDO attendee = attendeeMapper.selectByToken(token);
@@ -215,8 +222,11 @@ public class AttendeeServiceImpl implements AttendeeService {
 
     @Override
     @Transactional
-    @Auditable(operation = "Generate QR Codes", type = AuditType.DATA_CHANGE,
-               targetType = "Attendee", targetId = "#reqVO.eventId")
+    @Auditable(
+            operation = "Generate QR Codes",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Attendee",
+            targetId = "#reqVO.eventId")
     public GenerateQrCodesRespVO generateQrCodesForAttendees(GenerateQrCodesReqVO reqVO) {
         Long eventId = reqVO.getEventId();
         List<AttendeeReqVO> attendeeInfos = reqVO.getAttendees();

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
@@ -25,11 +24,8 @@ class AuditLogWriterServiceTest {
     @Test
     void writeSync_insertsDirectly() {
         AuditLogWriterService service = new AuditLogWriterService(auditLogMapper, Runnable::run);
-        AuditLogDO log = AuditLogDO.builder()
-                .module("security")
-                .operation("LOGIN_SUCCESS")
-                .type(1)
-                .build();
+        AuditLogDO log =
+                AuditLogDO.builder().module("security").operation("LOGIN_SUCCESS").type(1).build();
         when(auditLogMapper.insert(any())).thenReturn(1);
 
         service.writeSync(log);
@@ -42,11 +38,8 @@ class AuditLogWriterServiceTest {
     @Test
     void writeSync_mapperThrows_doesNotPropagate() {
         AuditLogWriterService service = new AuditLogWriterService(auditLogMapper, Runnable::run);
-        AuditLogDO log = AuditLogDO.builder()
-                .module("security")
-                .operation("CRITICAL")
-                .type(1)
-                .build();
+        AuditLogDO log =
+                AuditLogDO.builder().module("security").operation("CRITICAL").type(1).build();
         doThrow(new RuntimeException("db down")).when(auditLogMapper).insert(any());
 
         // Should not throw
@@ -58,24 +51,26 @@ class AuditLogWriterServiceTest {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<AuditLogDO> captured = new AtomicReference<>();
 
-        Executor testExecutor = command -> {
-            new Thread(() -> {
-                command.run();
-                latch.countDown();
-            }).start();
-        };
+        Executor testExecutor =
+                command -> {
+                    new Thread(
+                                    () -> {
+                                        command.run();
+                                        latch.countDown();
+                                    })
+                            .start();
+                };
 
-        when(auditLogMapper.insert(any())).thenAnswer(inv -> {
-            captured.set(inv.getArgument(0));
-            return 1;
-        });
+        when(auditLogMapper.insert(any()))
+                .thenAnswer(
+                        inv -> {
+                            captured.set(inv.getArgument(0));
+                            return 1;
+                        });
 
         AuditLogWriterService service = new AuditLogWriterService(auditLogMapper, testExecutor);
-        AuditLogDO log = AuditLogDO.builder()
-                .module("user")
-                .operation("Create Role")
-                .type(2)
-                .build();
+        AuditLogDO log =
+                AuditLogDO.builder().module("user").operation("Create Role").type(2).build();
 
         service.writeAsync(log);
 
@@ -89,21 +84,20 @@ class AuditLogWriterServiceTest {
     void writeAsync_mapperThrows_doesNotPropagate() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
 
-        Executor testExecutor = command -> {
-            new Thread(() -> {
-                command.run();
-                latch.countDown();
-            }).start();
-        };
+        Executor testExecutor =
+                command -> {
+                    new Thread(
+                                    () -> {
+                                        command.run();
+                                        latch.countDown();
+                                    })
+                            .start();
+                };
 
         doThrow(new RuntimeException("db down")).when(auditLogMapper).insert(any());
 
         AuditLogWriterService service = new AuditLogWriterService(auditLogMapper, testExecutor);
-        AuditLogDO log = AuditLogDO.builder()
-                .module("user")
-                .operation("Fail Op")
-                .type(2)
-                .build();
+        AuditLogDO log = AuditLogDO.builder().module("user").operation("Fail Op").type(2).build();
 
         service.writeAsync(log);
 
@@ -119,11 +113,8 @@ class AuditLogWriterServiceTest {
         when(auditLogMapper.insert(any())).thenReturn(1);
 
         AuditLogWriterService service = new AuditLogWriterService(auditLogMapper, syncExecutor);
-        AuditLogDO log = AuditLogDO.builder()
-                .module("event")
-                .operation("Create Event")
-                .type(3)
-                .build();
+        AuditLogDO log =
+                AuditLogDO.builder().module("event").operation("Create Event").type(3).build();
 
         service.writeAsync(log);
 

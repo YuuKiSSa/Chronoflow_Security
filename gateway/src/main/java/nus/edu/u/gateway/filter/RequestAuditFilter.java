@@ -17,11 +17,10 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * Gateway-level audit filter that logs mutating requests (POST/PATCH/PUT/DELETE)
- * to sensitive endpoints into Redis for request-level audit trailing (STRIDE: Repudiation).
+ * Gateway-level audit filter that logs mutating requests (POST/PATCH/PUT/DELETE) to sensitive
+ * endpoints into Redis for request-level audit trailing (STRIDE: Repudiation).
  *
- * <p>Entries are stored in Redis lists with a 7-day TTL:
- * {@code gateway:audit:log:{date}}
+ * <p>Entries are stored in Redis lists with a 7-day TTL: {@code gateway:audit:log:{date}}
  */
 @Component
 @RequiredArgsConstructor
@@ -34,20 +33,19 @@ public class RequestAuditFilter implements GlobalFilter, Ordered {
     private static final Duration AUDIT_RETENTION = Duration.ofDays(7);
 
     /** HTTP methods that represent mutating operations. */
-    private static final Set<HttpMethod> MUTATING_METHODS = Set.of(
-            HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE
-    );
+    private static final Set<HttpMethod> MUTATING_METHODS =
+            Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE);
 
     /** Path prefixes for sensitive endpoints to audit. */
     private static final String[] AUDITED_PREFIXES = {
-            "/users/roles",
-            "/users/permissions",
-            "/users/organizer",
-            "/users/auth",
-            "/events",
-            "/tasks",
-            "/attendees",
-            "/api/files"
+        "/users/roles",
+        "/users/permissions",
+        "/users/organizer",
+        "/users/auth",
+        "/events",
+        "/tasks",
+        "/attendees",
+        "/api/files"
     };
 
     @Override
@@ -74,22 +72,33 @@ public class RequestAuditFilter implements GlobalFilter, Ordered {
         long startTime = System.currentTimeMillis();
 
         return chain.filter(exchange)
-                .then(Mono.defer(() -> {
-                    long duration = System.currentTimeMillis() - startTime;
-                    int statusCode = exchange.getResponse().getStatusCode() != null
-                            ? exchange.getResponse().getStatusCode().value()
-                            : 0;
+                .then(
+                        Mono.defer(
+                                () -> {
+                                    long duration = System.currentTimeMillis() - startTime;
+                                    int statusCode =
+                                            exchange.getResponse().getStatusCode() != null
+                                                    ? exchange.getResponse().getStatusCode().value()
+                                                    : 0;
 
-                    String auditEntry = buildAuditEntry(request, statusCode, duration);
-                    String dateKey = AUDIT_KEY_PREFIX + LocalDate.now();
+                                    String auditEntry =
+                                            buildAuditEntry(request, statusCode, duration);
+                                    String dateKey = AUDIT_KEY_PREFIX + LocalDate.now();
 
-                    return reactiveRedisTemplate.opsForList()
-                            .rightPush(dateKey, auditEntry)
-                            .then(reactiveRedisTemplate.expire(dateKey, AUDIT_RETENTION))
-                            .doOnError(e -> log.warn("[GATEWAY_AUDIT] Failed to write: {}", e.getMessage()))
-                            .onErrorResume(e -> Mono.empty())
-                            .then();
-                }));
+                                    return reactiveRedisTemplate
+                                            .opsForList()
+                                            .rightPush(dateKey, auditEntry)
+                                            .then(
+                                                    reactiveRedisTemplate.expire(
+                                                            dateKey, AUDIT_RETENTION))
+                                            .doOnError(
+                                                    e ->
+                                                            log.warn(
+                                                                    "[GATEWAY_AUDIT] Failed to write: {}",
+                                                                    e.getMessage()))
+                                            .onErrorResume(e -> Mono.empty())
+                                            .then();
+                                }));
     }
 
     private boolean isAuditedPath(String path) {
@@ -110,12 +119,18 @@ public class RequestAuditFilter implements GlobalFilter, Ordered {
         StringBuilder sb = new StringBuilder(512);
         sb.append("{");
         appendField(sb, "timestamp", Instant.now().toString());
-        sb.append(","); appendField(sb, "method", request.getMethod() != null ? request.getMethod().name() : "");
-        sb.append(","); appendField(sb, "path", request.getURI().getPath());
-        sb.append(","); appendField(sb, "query", request.getURI().getQuery());
-        sb.append(","); appendField(sb, "clientIp", clientIp);
-        sb.append(","); appendField(sb, "userAgent", truncate(userAgent, 256));
-        sb.append(","); appendField(sb, "traceId", traceId);
+        sb.append(",");
+        appendField(sb, "method", request.getMethod() != null ? request.getMethod().name() : "");
+        sb.append(",");
+        appendField(sb, "path", request.getURI().getPath());
+        sb.append(",");
+        appendField(sb, "query", request.getURI().getQuery());
+        sb.append(",");
+        appendField(sb, "clientIp", clientIp);
+        sb.append(",");
+        appendField(sb, "userAgent", truncate(userAgent, 256));
+        sb.append(",");
+        appendField(sb, "traceId", traceId);
         sb.append(",\"statusCode\":").append(statusCode);
         sb.append(",\"duration\":").append(duration);
         sb.append("}");
@@ -134,10 +149,10 @@ public class RequestAuditFilter implements GlobalFilter, Ordered {
 
     private String escapeJson(String value) {
         return value.replace("\\", "\\\\")
-                    .replace("\"", "\\\"")
-                    .replace("\n", "\\n")
-                    .replace("\r", "\\r")
-                    .replace("\t", "\\t");
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     private String getClientIp(ServerHttpRequest request) {

@@ -30,20 +30,21 @@ class AuditLogControllerTest {
 
     @BeforeEach
     void setUp() {
-        sampleResp = AuditLogRespVO.builder()
-                .id(1L)
-                .userId(100L)
-                .module("user")
-                .operation("Create Role")
-                .type(2)
-                .method("POST")
-                .requestUrl("/users/roles")
-                .targetType("Role")
-                .targetId("5")
-                .resultCode(0)
-                .duration(42)
-                .createTime(LocalDateTime.of(2025, 12, 1, 10, 30))
-                .build();
+        sampleResp =
+                AuditLogRespVO.builder()
+                        .id(1L)
+                        .userId(100L)
+                        .module("user")
+                        .operation("Create Role")
+                        .type(2)
+                        .method("POST")
+                        .requestUrl("/users/roles")
+                        .targetType("Role")
+                        .targetId("5")
+                        .resultCode(0)
+                        .duration(42)
+                        .createTime(LocalDateTime.of(2025, 12, 1, 10, 30))
+                        .build();
     }
 
     @Test

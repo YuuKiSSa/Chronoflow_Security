@@ -88,14 +88,20 @@ public class AuthServiceImpl implements AuthService {
         }
         // 2.Check password
         if (!userService.isPasswordMatch(password, userDO.getPassword())) {
-            auditLogger.log(SecurityEvent.LOGIN_FAILED_BAD_CREDENTIALS,
-                    userDO.getId().toString(), null, username);
+            auditLogger.log(
+                    SecurityEvent.LOGIN_FAILED_BAD_CREDENTIALS,
+                    userDO.getId().toString(),
+                    null,
+                    username);
             throw exception(AUTH_LOGIN_BAD_CREDENTIALS);
         }
         // 3.Check if user is disabled
         if (CommonStatusEnum.isDisable(userDO.getStatus())) {
-            auditLogger.log(SecurityEvent.LOGIN_FAILED_ACCOUNT_DISABLED,
-                    userDO.getId().toString(), null, username);
+            auditLogger.log(
+                    SecurityEvent.LOGIN_FAILED_ACCOUNT_DISABLED,
+                    userDO.getId().toString(),
+                    null,
+                    username);
             throw exception(AUTH_LOGIN_USER_DISABLED);
         }
         return userDO;
@@ -180,8 +186,8 @@ public class AuthServiceImpl implements AuthService {
         if (StrUtil.isEmpty(refreshToken)) {
             refreshToken = tokenService.createRefreshToken(userTokenDTO);
         }
-        auditLogger.log(SecurityEvent.LOGIN_SUCCESS,
-                userDO.getId().toString(), null, userDO.getUsername());
+        auditLogger.log(
+                SecurityEvent.LOGIN_SUCCESS, userDO.getId().toString(), null, userDO.getUsername());
         return getInfo(refreshToken);
     }
 
@@ -192,7 +198,8 @@ public class AuthServiceImpl implements AuthService {
             if (StpUtil.isLogin()) {
                 userId = StpUtil.getLoginIdAsString();
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         tokenService.removeToken(token);
         StpUtil.logout();
         auditLogger.log(SecurityEvent.LOGOUT, userId, null, null);

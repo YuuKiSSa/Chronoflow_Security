@@ -11,9 +11,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import nus.edu.u.framework.mybatis.base.TenantBaseDO;
 
-/**
- * Persistent audit log entry stored in the {@code audit_log} table.
- */
+/** Persistent audit log entry stored in the {@code audit_log} table. */
 @TableName("audit_log")
 @Data
 @EqualsAndHashCode(callSuper = true)

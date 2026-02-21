@@ -14,7 +14,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -22,8 +21,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
- * AOP aspect that intercepts methods annotated with {@link Auditable}
- * and writes audit log entries via {@link AuditLogWriterService}.
+ * AOP aspect that intercepts methods annotated with {@link Auditable} and writes audit log entries
+ * via {@link AuditLogWriterService}.
  */
 @Aspect
 @RequiredArgsConstructor
@@ -34,8 +33,15 @@ public class AuditAspect {
     private final ObjectMapper objectMapper;
 
     private static final ExpressionParser PARSER = new SpelExpressionParser();
-    private static final Set<String> SENSITIVE_FIELDS = new HashSet<>(
-            Arrays.asList("password", "rawPassword", "totpSecret", "secret", "token", "refreshToken"));
+    private static final Set<String> SENSITIVE_FIELDS =
+            new HashSet<>(
+                    Arrays.asList(
+                            "password",
+                            "rawPassword",
+                            "totpSecret",
+                            "secret",
+                            "token",
+                            "refreshToken"));
 
     @Around("@annotation(auditable)")
     public Object around(ProceedingJoinPoint joinPoint, Auditable auditable) throws Throwable {
@@ -54,8 +60,10 @@ public class AuditAspect {
                 AuditLogDO auditLog = buildAuditLog(joinPoint, auditable, result, caught, duration);
                 writerService.writeAsync(auditLog);
             } catch (Exception e) {
-                log.warn("[AUDIT] Failed to build/submit audit log for {}: {}",
-                        auditable.operation(), e.getMessage());
+                log.warn(
+                        "[AUDIT] Failed to build/submit audit log for {}: {}",
+                        auditable.operation(),
+                        e.getMessage());
             }
         }
 
@@ -143,7 +151,8 @@ public class AuditAspect {
         return "unknown";
     }
 
-    private static final ParameterNameDiscoverer NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
+    private static final ParameterNameDiscoverer NAME_DISCOVERER =
+            new DefaultParameterNameDiscoverer();
 
     private String evaluateSpel(ProceedingJoinPoint joinPoint, String expression) {
         try {
@@ -195,9 +204,10 @@ public class AuditAspect {
 
             // Strip sensitive fields from JSON
             for (String field : excludes) {
-                json = json.replaceAll(
-                        "\"" + field + "\"\\s*:\\s*\"[^\"]*\"",
-                        "\"" + field + "\":\"***\"");
+                json =
+                        json.replaceAll(
+                                "\"" + field + "\"\\s*:\\s*\"[^\"]*\"",
+                                "\"" + field + "\":\"***\"");
             }
 
             return truncate(json, 4000);

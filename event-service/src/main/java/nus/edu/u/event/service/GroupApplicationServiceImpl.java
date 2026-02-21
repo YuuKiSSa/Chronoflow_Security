@@ -29,8 +29,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.CommonStatusEnum;
-import nus.edu.u.framework.security.audit.AuditType;
-import nus.edu.u.framework.security.audit.Auditable;
 import nus.edu.u.event.convert.UserConvert;
 import nus.edu.u.event.domain.dataobject.event.EventDO;
 import nus.edu.u.event.domain.dataobject.group.DeptDO;
@@ -42,6 +40,8 @@ import nus.edu.u.event.domain.dto.user.UserProfileRespVO;
 import nus.edu.u.event.mapper.DeptMapper;
 import nus.edu.u.event.mapper.EventMapper;
 import nus.edu.u.event.mapper.UserGroupMapper;
+import nus.edu.u.framework.security.audit.AuditType;
+import nus.edu.u.framework.security.audit.Auditable;
 import nus.edu.u.shared.rpc.group.GroupDTO;
 import nus.edu.u.shared.rpc.group.GroupMemberDTO;
 import nus.edu.u.shared.rpc.user.RoleBriefDTO;
@@ -70,8 +70,11 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
 
     @Override
     @Transactional
-    @Auditable(operation = "Create Group", type = AuditType.DATA_CHANGE,
-               targetType = "Group", targetId = "#reqVO.eventId")
+    @Auditable(
+            operation = "Create Group",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Group",
+            targetId = "#reqVO.eventId")
     public Long createGroup(CreateGroupReqVO reqVO) {
         log.info("Creating group: {}", reqVO.getName());
         EventDO event = eventMapper.selectById(reqVO.getEventId());
@@ -119,8 +122,11 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
 
     @Override
     @Transactional
-    @Auditable(operation = "Update Group", type = AuditType.DATA_CHANGE,
-               targetType = "Group", targetId = "#reqVO.id")
+    @Auditable(
+            operation = "Update Group",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Group",
+            targetId = "#reqVO.id")
     public void updateGroup(UpdateGroupReqVO reqVO) {
         DeptDO existing = deptMapper.selectById(reqVO.getId());
         if (existing == null) {
@@ -245,8 +251,11 @@ public class GroupApplicationServiceImpl implements GroupApplicationService {
 
     @Override
     @Transactional
-    @Auditable(operation = "Add Members to Group", type = AuditType.DATA_CHANGE,
-               targetType = "Group", targetId = "#groupId")
+    @Auditable(
+            operation = "Add Members to Group",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Group",
+            targetId = "#groupId")
     public void addMembersToGroup(Long groupId, List<Long> userIds) {
         if (ObjectUtil.isEmpty(userIds)) {
             return;

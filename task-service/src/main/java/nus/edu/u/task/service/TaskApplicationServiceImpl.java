@@ -70,8 +70,11 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
 
     @Override
     @Transactional
-    @Auditable(operation = "Create Task", type = AuditType.DATA_CHANGE,
-               targetType = "Task", targetId = "#eventId")
+    @Auditable(
+            operation = "Create Task",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Task",
+            targetId = "#eventId")
     public TaskRespVO createTask(Long eventId, TaskCreateReqVO reqVO) {
         EventRespDTO event = eventRpcService.getEvent(eventId);
         if (event == null) {
@@ -150,8 +153,11 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
 
     @Override
     @Transactional
-    @Auditable(operation = "Update Task", type = AuditType.DATA_CHANGE,
-               targetType = "Task", targetId = "#taskId")
+    @Auditable(
+            operation = "Update Task",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Task",
+            targetId = "#taskId")
     public TaskRespVO updateTask(Long eventId, Long taskId, TaskUpdateReqVO reqVO, Integer type) {
         EventRespDTO event = eventRpcService.getEvent(eventId);
         if (event == null) {
@@ -245,8 +251,11 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
 
     @Override
     @Transactional
-    @Auditable(operation = "Delete Task", type = AuditType.DATA_CHANGE,
-               targetType = "Task", targetId = "#taskId")
+    @Auditable(
+            operation = "Delete Task",
+            type = AuditType.DATA_CHANGE,
+            targetType = "Task",
+            targetId = "#taskId")
     public void deleteTask(Long eventId, Long taskId) {
         EventRespDTO event = eventRpcService.getEvent(eventId);
         if (event == null) {

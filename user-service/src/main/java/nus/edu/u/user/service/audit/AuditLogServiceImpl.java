@@ -15,16 +15,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuditLogServiceImpl implements AuditLogService {
 
-    @Resource
-    private AuditLogMapper auditLogMapper;
+    @Resource private AuditLogMapper auditLogMapper;
 
     @Override
     public PageResult<AuditLogRespVO> getAuditLogPage(AuditLogQueryReqVO reqVO) {
         LambdaQueryWrapper<AuditLogDO> wrapper = buildWrapper(reqVO);
         wrapper.orderByDesc(AuditLogDO::getCreateTime);
 
-        IPage<AuditLogDO> page = auditLogMapper.selectPage(
-                new Page<>(reqVO.getPageNo(), reqVO.getPageSize()), wrapper);
+        IPage<AuditLogDO> page =
+                auditLogMapper.selectPage(
+                        new Page<>(reqVO.getPageNo(), reqVO.getPageSize()), wrapper);
 
         List<AuditLogRespVO> list = page.getRecords().stream().map(this::convert).toList();
         return new PageResult<>(list, page.getTotal());
@@ -37,13 +37,14 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public PageResult<AuditLogRespVO> getAuditLogsByUserId(Long userId, Integer pageNo, Integer pageSize) {
-        LambdaQueryWrapper<AuditLogDO> wrapper = new LambdaQueryWrapper<AuditLogDO>()
-                .eq(AuditLogDO::getUserId, userId)
-                .orderByDesc(AuditLogDO::getCreateTime);
+    public PageResult<AuditLogRespVO> getAuditLogsByUserId(
+            Long userId, Integer pageNo, Integer pageSize) {
+        LambdaQueryWrapper<AuditLogDO> wrapper =
+                new LambdaQueryWrapper<AuditLogDO>()
+                        .eq(AuditLogDO::getUserId, userId)
+                        .orderByDesc(AuditLogDO::getCreateTime);
 
-        IPage<AuditLogDO> page = auditLogMapper.selectPage(
-                new Page<>(pageNo, pageSize), wrapper);
+        IPage<AuditLogDO> page = auditLogMapper.selectPage(new Page<>(pageNo, pageSize), wrapper);
 
         List<AuditLogRespVO> list = page.getRecords().stream().map(this::convert).toList();
         return new PageResult<>(list, page.getTotal());
