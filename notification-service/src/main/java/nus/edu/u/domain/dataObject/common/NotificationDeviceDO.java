@@ -10,7 +10,7 @@ import nus.edu.u.enums.push.PushPlatform;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 @Table(
         name = "notification_device",
         uniqueConstraints = @UniqueConstraint(name = "uk_device_token", columnNames = "token"),
