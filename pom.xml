@@ -35,13 +35,12 @@
         <spring-boot.version>3.3.13</spring-boot.version>
         <spring-cloud.version>2023.0.6</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.4</spring-cloud-alibaba.version>
-        <spring-cloud-gateway-server-version>4.2.6</spring-cloud-gateway-server-version>
         <!-- Web -->
         <springdoc.version>2.8.14</springdoc.version>
         <knife4j.version>4.4.0</knife4j.version>
         <dubbo.version>3.3.0</dubbo.version>
         <netty.version>4.2.10.Final</netty.version>
-        <tomcat.version>10.1.52</tomcat.version>
+        <tomcat.version>10.1.49</tomcat.version>
         <!-- Database -->
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
         <druid.version>1.2.24</druid.version>
@@ -74,7 +73,7 @@
         <gatling.version>3.14.9</gatling.version>
         <logback.version>1.5.27</logback.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
-        <netty.shaded.version>1.75.0</netty.shaded.version>
+        <netty.shaded.version>1.79.0</netty.shaded.version>
 
         <!-- SonarQube 測試覆蓋排除項（所有自動生成的類不統計、不掃描） -->
         <sonar.coverage.exclusions>
@@ -139,12 +138,6 @@
                 <version>${spring-framework.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-gateway-server</artifactId>
-                <version>${spring-cloud-gateway-server-version}</version>
             </dependency>
 
             <!-- SpringBoot-->
