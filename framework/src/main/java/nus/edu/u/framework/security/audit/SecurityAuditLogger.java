@@ -12,8 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * Security audit logger for tracking authentication and authorization events.
- * Logs to both structured log output and Redis for retention.
+ * Security audit logger for tracking authentication and authorization events. Logs to both
+ * structured log output and Redis for retention.
  */
 @RequiredArgsConstructor
 @Slf4j

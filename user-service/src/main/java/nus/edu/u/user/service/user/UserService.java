@@ -117,7 +117,8 @@ public interface UserService {
      * @param organizationName Organization name (optional)
      * @return Created UserDO
      */
-    UserDO createUserFromFirebase(String firebaseUid, String email, String name, String organizationName);
+    UserDO createUserFromFirebase(
+            String firebaseUid, String email, String name, String organizationName);
 
     // TOTP methods
 
