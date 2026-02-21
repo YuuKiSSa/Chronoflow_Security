@@ -45,8 +45,7 @@ public class AttendeeServiceImpl implements AttendeeService {
 
     private final AttendeeNotificationPublisher attendeeNotificationPublisher;
 
-    @DubboReference(check = false)
-    private UserRpcService userRpcService;
+    @DubboReference private UserRpcService userRpcService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
