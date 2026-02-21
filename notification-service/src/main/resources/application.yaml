@@ -42,6 +42,8 @@ spring:
         encoded-key: ${PUB_SUB_SERVICE_ACCOUNT_JSON}
       pubsub:
         enabled: true
+      firestore:
+        enabled: true
 
     sentinel:
       enabled: true
@@ -205,7 +207,7 @@ aws:
 
 
 email:
-  from: no-reply@chronoflowse.xyz
+  from: "chronoflow2025@gmail.com"
 
 notification:
   ws:

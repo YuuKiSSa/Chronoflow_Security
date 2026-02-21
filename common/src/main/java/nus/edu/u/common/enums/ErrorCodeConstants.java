@@ -161,6 +161,7 @@ public interface ErrorCodeConstants {
     // ========= Attendee module 10-05-000 ============
     ErrorCode ATTENDEE_NOT_EXIST = new ErrorCode(10_05_001, "Attendee does not exist");
     ErrorCode UPDATE_ATTENDEE_FAILED = new ErrorCode(10_05_002, "Update attendee failed");
+    ErrorCode TENANT_NOT_EXIST = new ErrorCode(10_05_003, "Tenant does not exist");
 
     // ========= Excel ============
     ErrorCode EMPTY_EXCEL = new ErrorCode(905, "Excel is empty");
