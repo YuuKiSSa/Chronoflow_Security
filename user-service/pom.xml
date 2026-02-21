@@ -30,7 +30,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>nus.edu.u</groupId>
             <artifactId>framework</artifactId>
@@ -40,7 +39,11 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>spring-cloud-gcp-starter-pubsub</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>10.7</version>
+        </dependency>
         <dependency>
             <groupId>nus.edu.u</groupId>
             <artifactId>shared-api</artifactId>
@@ -92,14 +95,38 @@
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <configuration>
-                    <excludes>
-                        <exclude>**/generated/**</exclude>
-                        <exclude>**/*Generated*</exclude>
-                        <exclude>**/*MapperImpl.class</exclude>
-                    </excludes>
-                </configuration>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <!-- sets up the JaCoCo agent before tests run -->
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!-- generates the report after tests run -->
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <!-- optional: fail build if coverage drops below threshold -->
+                    <execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/generated/**</exclude>
+                                <exclude>**/*Generated*</exclude>
+                                <exclude>**/*MapperImpl.class</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

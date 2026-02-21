@@ -4,6 +4,7 @@ import static nus.edu.u.common.constant.CacheConstants.USER_PERMISSION_KEY;
 import static nus.edu.u.common.constant.CacheConstants.USER_ROLE_KEY;
 import static nus.edu.u.common.constant.Constants.DEFAULT_DELIMITER;
 import static nus.edu.u.common.constant.Constants.SESSION_TENANT_ID;
+import static nus.edu.u.common.constant.SecurityConstants.MOBILE_SSO_JWT_ISSUER;
 import static nus.edu.u.common.enums.ErrorCodeConstants.*;
 import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
@@ -12,8 +13,22 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTUtil;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
+import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import jakarta.annotation.Resource;
+import java.net.URL;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +45,7 @@ import nus.edu.u.user.domain.vo.auth.UserVO;
 import nus.edu.u.user.domain.vo.role.RoleRespVO;
 import nus.edu.u.user.service.role.RoleService;
 import nus.edu.u.user.service.user.UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,6 +63,14 @@ public class AuthServiceImpl implements AuthService {
     @Resource private TokenService tokenService;
 
     @Resource private RoleService roleService;
+
+    @Value("${MOBILE_SSO_JWKS}")
+    private String mobileSsoJWKS;
+
+    @Value("${MOBILE_CLIENT_ID}")
+    private String mobileClientId;
+
+    private final SecureRandom secureRandom = new SecureRandom();
 
     @Resource private TotpService totpService;
 
@@ -68,6 +92,19 @@ public class AuthServiceImpl implements AuthService {
         return userDO;
     }
 
+    public UserDO authenticate(String username) {
+        // 1.Check username first
+        UserDO userDO = userService.getUserByUsername(username);
+        if (userDO == null) {
+            throw exception(USER_NOTFOUND);
+        }
+        // 3.Check if user is disabled
+        if (CommonStatusEnum.isDisable(userDO.getStatus())) {
+            throw exception(AUTH_LOGIN_USER_DISABLED);
+        }
+        return userDO;
+    }
+
     @Override
     public LoginRespVO login(LoginReqVO reqVO) {
         // 1.Verify username and password
@@ -75,15 +112,50 @@ public class AuthServiceImpl implements AuthService {
         // 2.Check if TOTP is enabled - require MFA
         if (Boolean.TRUE.equals(userDO.getTotpEnabled())) {
             String mfaToken = totpService.createMfaToken(userDO.getId(), reqVO.isRemember());
-            return LoginRespVO.builder()
-                    .mfaRequired(true)
-                    .mfaToken(mfaToken)
-                    .build();
+            return LoginRespVO.builder().mfaRequired(true).mfaToken(mfaToken).build();
         }
         // 3.Update user login time
         userDO.setLoginTime(LocalDateTime.now());
         // 4.Create token
         return handleLogin(userDO, reqVO.isRemember(), reqVO.getRefreshToken());
+    }
+
+    public UserDO mobileSsoLogin(String token) throws Exception {
+        JWTClaimsSet claims = this.verifyJwtSignature(token);
+        JWT jwtToken = JWTUtil.parseToken(token);
+        String email = jwtToken.getPayload("email").toString();
+        return authenticate(email);
+    }
+
+    public String generateOTT(long userId) {
+        byte[] bytes = new byte[32];
+        secureRandom.nextBytes(bytes);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        userService.generateToken(token, userId);
+        return token;
+    }
+
+    public JWTClaimsSet verifyJwtSignature(String token) throws Exception {
+        token = token.trim();
+        if (token.length() >= 2 && token.startsWith("\"") && token.endsWith("\"")) {
+            token = token.substring(1, token.length() - 1);
+        }
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        URL url = new URL(mobileSsoJWKS);
+        JWKSource<SecurityContext> keySource = JWKSourceBuilder.create(url).retrying(true).build();
+        JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
+        jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(expectedJWSAlg, keySource));
+        JWTClaimsSet expectedClaims =
+                new JWTClaimsSet.Builder().issuer(MOBILE_SSO_JWT_ISSUER).build();
+        jwtProcessor.setJWTClaimsSetVerifier(
+                new DefaultJWTClaimsVerifier<>(this.mobileClientId, expectedClaims, null));
+        // throws error if token is invalid
+        return jwtProcessor.process(token, null);
+    }
+
+    public LoginRespVO validateOTT(String ott) throws Exception {
+        UserDO userDO = userService.retrieveUserFromOTT(ott);
+        return handleLogin(userDO, true, ott);
     }
 
     private LoginRespVO handleLogin(UserDO userDO, boolean rememberMe, String refreshToken) {

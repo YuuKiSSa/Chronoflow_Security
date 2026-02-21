@@ -27,7 +27,8 @@ public interface ErrorCodeConstants {
     ErrorCode FIREBASE_VERIFICATION_FAILED =
             new ErrorCode(10_01_008, "Firebase token verification failed");
     ErrorCode REFRESH_TOKEN_REUSE_DETECTED =
-            new ErrorCode(10_01_009, "Security alert: Refresh token reuse detected. Please log in again");
+            new ErrorCode(
+                    10_01_009, "Security alert: Refresh token reuse detected. Please log in again");
 
     // ========= user crud module 12-01-000 ============
     ErrorCode USERNAME_EXIST = new ErrorCode(12_01_001, "Username already exists");

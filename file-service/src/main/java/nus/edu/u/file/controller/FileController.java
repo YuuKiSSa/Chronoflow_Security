@@ -18,7 +18,10 @@ public class FileController {
 
     private final FileStorageService fileStorageService;
 
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(
+            value = "/upload",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<FileResultVO>> uploadToTaskLog(
             @ModelAttribute @Validated FileUploadReqVO req) {
         List<FileResultVO> results = fileStorageService.uploadToTaskLog(req);
@@ -26,13 +29,13 @@ public class FileController {
     }
 
     /** Download a single file by taskLogId */
-    @GetMapping("/{taskLogId}/download")
+    @GetMapping(value = "/{taskLogId}/download", produces = MediaType.APPLICATION_JSON_VALUE)
     public FileResultVO downloadFileByTaskLogId(@PathVariable("taskLogId") Long taskLogId) {
         return fileStorageService.downloadFile(taskLogId);
     }
 
     /** Download all files attached to a taskLogId */
-    @GetMapping("/{taskLogId}/download-all")
+    @GetMapping(value = "/{taskLogId}/download-all", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<FileResultVO> downloadFilesByTaskLogId(@PathVariable("taskLogId") Long taskLogId) {
         return fileStorageService.downloadFilesByTaskLogId(taskLogId);
     }

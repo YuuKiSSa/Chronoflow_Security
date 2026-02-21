@@ -39,6 +39,9 @@ public interface UserMapper extends BaseMapper<UserDO> {
     @InterceptorIgnore(tenantLine = "true")
     UserDO selectByUsername(String username);
 
+    @InterceptorIgnore(tenantLine = "true")
+    UserDO selectUserById(long id);
+
     // ===== exists series, for Service reuse to avoid duplication of count code =====
     default boolean existsUsername(String username, Long excludeId) {
         return this.selectCount(

@@ -1,5 +1,6 @@
 package nus.edu.u.user.service.auth;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.vo.auth.LoginReqVO;
 import nus.edu.u.user.domain.vo.auth.LoginRespVO;
@@ -23,6 +24,12 @@ public interface AuthService {
      */
     UserDO authenticate(String username, String password);
 
+    String generateOTT(long userId);
+
+    UserDO mobileSsoLogin(String jwtToken) throws Exception;
+
+    LoginRespVO validateOTT(String ott) throws Exception;
+
     /**
      * Login service
      *
@@ -39,6 +46,8 @@ public interface AuthService {
     void logout(String token);
 
     LoginRespVO refresh(String refreshTokenVO);
+
+    JWTClaimsSet verifyJwtSignature(String token) throws Exception;
 
     /**
      * Verify TOTP code and complete login after MFA challenge.
