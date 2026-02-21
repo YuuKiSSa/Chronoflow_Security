@@ -2,14 +2,13 @@ package nus.edu.u.user.domain.dto;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nus.edu.u.common.enums.CommonStatusEnum;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author Lu Shuwen

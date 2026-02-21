@@ -5,6 +5,7 @@ import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import static nus.edu.u.framework.mybatis.MybatisPlusConfig.getCurrentTenantId;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.time.LocalDateTime;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,8 @@ public class AttendeeServiceImpl implements AttendeeService {
 
     private final AttendeeNotificationPublisher attendeeNotificationPublisher;
 
-    @DubboReference private UserRpcService userRpcService;
+    @DubboReference(check = false)
+    private UserRpcService userRpcService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -269,7 +271,7 @@ public class AttendeeServiceImpl implements AttendeeService {
                 try {
                     sendEmail(attendee, event, qrCode);
                 } catch (Exception e) {
-                    log.error("Failed to send email to {}: {}", info.getEmail(), e.getMessage());
+                    log.error("Failed to send email to {}: {}", info.getEmail(), e);
                 }
 
                 successList.add(
@@ -414,5 +416,56 @@ public class AttendeeServiceImpl implements AttendeeService {
                 attendee.getCheckInStatus());
 
         return respVO;
+    }
+
+    @Override
+    public AttendeeDashboardRespVO getDashboard(Long eventId, Integer page, Integer pageSize) {
+        // 1) Normalize paging
+        int p = (page == null || page < 1) ? 1 : page;
+        int ps = (pageSize == null || pageSize < 1) ? 20 : Math.min(pageSize, 100);
+
+        // 2) Tenant
+        Long tenantId = getCurrentTenantId();
+        if (tenantId == null) {
+            throw exception(TENANT_NOT_EXIST);
+        }
+
+        // 3) Summary
+        AttendeeSummaryVO summary = attendeeMapper.selectCheckInSummary(eventId, tenantId);
+
+        if (summary == null) {
+            summary = AttendeeSummaryVO.builder().checkedIn(0L).nonCheckedIn(0L).build();
+        }
+
+        // 4) Page of NOT checked-in
+        Page<EventAttendeeDO> mpPage = new Page<>(p, ps);
+        Page<EventAttendeeDO> result =
+                attendeeMapper.selectNotCheckedInPage(mpPage, eventId, tenantId);
+
+        // 5) Map to simple VO
+        var items =
+                result.getRecords().stream()
+                        .map(
+                                a ->
+                                        AttendeeSimpleVO.builder()
+                                                .name(a.getAttendeeName())
+                                                .email(a.getAttendeeEmail())
+                                                .mobile(a.getAttendeeMobile())
+                                                .createTime(
+                                                        a.getCreateTime() != null
+                                                                ? a.getCreateTime().toString()
+                                                                : null)
+                                                .build())
+                        .toList();
+
+        PageVO<AttendeeSimpleVO> pageVO =
+                PageVO.<AttendeeSimpleVO>builder()
+                        .items(items)
+                        .page(p)
+                        .pageSize(ps)
+                        .total(result.getTotal())
+                        .build();
+
+        return AttendeeDashboardRespVO.builder().summary(summary).attendees(pageVO).build();
     }
 }

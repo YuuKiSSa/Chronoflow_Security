@@ -2,12 +2,14 @@ package nus.edu.u.user.controller.auth;
 
 import static nus.edu.u.common.constant.SecurityConstants.REFRESH_TOKEN_COOKIE_NAME;
 import static nus.edu.u.common.constant.SecurityConstants.REFRESH_TOKEN_REMEMBER_COOKIE_MAX_AGE;
+import static nus.edu.u.common.core.domain.CommonResult.error;
 import static nus.edu.u.common.core.domain.CommonResult.success;
 
 import cn.dev33.satoken.annotation.SaIgnore;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,7 @@ import nus.edu.u.framework.security.factory.AbstractCookieFactory;
 import nus.edu.u.framework.security.factory.LongLifeRefreshTokenCookie;
 import nus.edu.u.framework.security.factory.ZeroLifeRefreshTokenCookie;
 import nus.edu.u.user.config.CookieConfig;
+import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.vo.auth.LoginReqVO;
 import nus.edu.u.user.domain.vo.auth.LoginRespVO;
 import nus.edu.u.user.service.auth.AuthService;
@@ -62,6 +65,40 @@ public class AuthController {
         }
         response.addCookie(cookieFactory.createCookie(loginRespVO.getRefreshToken()));
         return success(loginRespVO);
+    }
+
+    @SaIgnore
+    @PostMapping("/exchangeToken")
+    @Operation(summary = "Exchange Mobile SSO token with backend OTT")
+    public CommonResult<String> ssoLogin(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String token = request.getHeader("Authorization").replace("Bearer", "").strip();
+            UserDO userDo = authService.mobileSsoLogin(token);
+            String oneTimeToken = authService.generateOTT(userDo.getId());
+            return success(oneTimeToken);
+        } catch (Exception e) {
+            return error(e.hashCode(), e.getMessage());
+        }
+    }
+
+    @SaIgnore
+    @PostMapping("/validateOTT")
+    @Operation(summary = "Validate OTT for showing protected Webview")
+    public CommonResult<LoginRespVO> validateOTT(
+            @RequestBody String ott, HttpServletResponse response) {
+        try {
+            LoginRespVO loginRespVO = authService.validateOTT(ott.replace("\"", ""));
+            AbstractCookieFactory cookieFactory;
+            cookieFactory =
+                    new LongLifeRefreshTokenCookie(
+                            cookieConfig.isHttpOnly(),
+                            cookieConfig.isSecurity(),
+                            REFRESH_TOKEN_REMEMBER_COOKIE_MAX_AGE);
+            response.addCookie(cookieFactory.createCookie(loginRespVO.getRefreshToken()));
+            return success(loginRespVO);
+        } catch (Exception e) {
+            return error(e.hashCode(), e.getMessage());
+        }
     }
 
     @PostMapping("/logout")

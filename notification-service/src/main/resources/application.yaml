@@ -42,6 +42,8 @@ spring:
         encoded-key: ${PUB_SUB_SERVICE_ACCOUNT_JSON}
       pubsub:
         enabled: true
+      firestore:
+        enabled: true
 
     sentinel:
       enabled: true
@@ -77,12 +79,6 @@ spring:
             username: ${spring.cloud.nacos.username}
             password: ${spring.cloud.nacos.password}
 
-        flow-file:
-          file:
-            file: classpath:sentinel/flow-rules.json
-            data-type: json
-            rule-type: flow
-
         # 降级规则
         degrade-nacos:
           nacos:
@@ -94,12 +90,6 @@ spring:
             rule-type: degrade
             username: ${spring.cloud.nacos.username}
             password: ${spring.cloud.nacos.password}
-
-        degrade-file:
-          file:
-            file: classpath:sentinel/degrade-rules.json
-            data-type: json
-            rule-type: degrade
 
   config:
     import:
@@ -217,7 +207,7 @@ aws:
 
 
 email:
-  from: no-reply@chronoflowse.xyz
+  from: "chronoflow2025@gmail.com"
 
 notification:
   ws:

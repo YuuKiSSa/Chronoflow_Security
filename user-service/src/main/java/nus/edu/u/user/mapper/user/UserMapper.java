@@ -9,9 +9,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import nus.edu.u.shared.rpc.user.UserProfileDTO;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.dto.UserPermissionDTO;
+import nus.edu.u.user.domain.dto.UserProfileDTO;
 import nus.edu.u.user.domain.dto.UserRoleDTO;
 import nus.edu.u.user.domain.vo.user.UserProfileRespVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -38,6 +38,9 @@ public interface UserMapper extends BaseMapper<UserDO> {
 
     @InterceptorIgnore(tenantLine = "true")
     UserDO selectByUsername(String username);
+
+    @InterceptorIgnore(tenantLine = "true")
+    UserDO selectUserById(long id);
 
     // ===== exists series, for Service reuse to avoid duplication of count code =====
     default boolean existsUsername(String username, Long excludeId) {

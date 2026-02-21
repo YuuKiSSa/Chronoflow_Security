@@ -170,6 +170,16 @@ create table IF NOT EXISTS sys_user_role
     tenant_id   bigint                       null
 );
 
+CREATE TABLE IF NOT EXISTS sys_user_ott (
+    id CHAR(36) PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ott_user FOREIGN KEY (user_id) REFERENCES sys_user(id)
+);
+
 # Permissions
 INSERT INTO user.sys_permission (id, name, permission_key, description, type, parent_id, status, creator, create_time, updater, update_time, deleted, tenant_id) VALUES (1971465366969307138, 'All permission', '*', null, 3, null, 0, null, null, null, null, 0, null);
 INSERT INTO user.sys_permission (id, name, permission_key, description, type, parent_id, status, creator, create_time, updater, update_time, deleted, tenant_id) VALUES (1971465366969307139, 'Create member', 'system:organizer:member:create', null, 3, null, 0, null, null, null, null, 0, null);

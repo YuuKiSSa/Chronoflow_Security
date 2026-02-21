@@ -4,7 +4,10 @@ import static nus.edu.u.common.enums.ErrorCodeConstants.*;
 import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.annotation.Resource;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +21,7 @@ import nus.edu.u.user.domain.dataobject.role.RolePermissionDO;
 import nus.edu.u.user.domain.dataobject.tenant.TenantDO;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.dataobject.user.UserRoleDO;
-import nus.edu.u.user.domain.vo.reg.RegMemberReqVO;
-import nus.edu.u.user.domain.vo.reg.RegOrganizerReqVO;
-import nus.edu.u.user.domain.vo.reg.RegSearchReqVO;
-import nus.edu.u.user.domain.vo.reg.RegSearchRespVO;
+import nus.edu.u.user.domain.vo.reg.*;
 import nus.edu.u.user.enums.user.UserStatusEnum;
 import nus.edu.u.user.mapper.permission.PermissionMapper;
 import nus.edu.u.user.mapper.role.RoleMapper;
@@ -29,7 +29,8 @@ import nus.edu.u.user.mapper.role.RolePermissionMapper;
 import nus.edu.u.user.mapper.tenant.TenantMapper;
 import nus.edu.u.user.mapper.user.UserMapper;
 import nus.edu.u.user.mapper.user.UserRoleMapper;
-import nus.edu.u.user.publisher.organizer.OrganizerNotificationPublisher;
+import nus.edu.u.user.service.auth.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +72,8 @@ public class RegServiceImpl implements RegService {
     public static final int ORGANIZATION_CODE_LENGTH = 10;
 
     public static final int MAX_RETRY_GENERATE_CODE = 5;
+    @Autowired private UserService userService;
+    @Autowired private AuthService authService;
 
     public RegSearchRespVO search(RegSearchReqVO regSearchReqVO) {
         // Select tenant
@@ -233,5 +236,26 @@ public class RegServiceImpl implements RegService {
             throw exception(REG_FAIL);
         }
         return isSuccess;
+    }
+
+    @Override
+    @Transactional
+    public boolean registerAsOrganizer(SsoRegOrganizerReqVO ssoRegOrganizerReqVO) throws Exception {
+        JWTClaimsSet claimsSet = authService.verifyJwtSignature(ssoRegOrganizerReqVO.getJwtToken());
+        JWT jwtToken = JWTUtil.parseToken(ssoRegOrganizerReqVO.getJwtToken());
+        String email = jwtToken.getPayload("email").toString();
+        String name = jwtToken.getPayload("name").toString();
+        RegOrganizerReqVO regOrganizerReqVO =
+                RegOrganizerReqVO.builder()
+                        .name(name)
+                        .username(email)
+                        .userEmail(email)
+                        .mobile(ssoRegOrganizerReqVO.getMobile())
+                        .organizationName(ssoRegOrganizerReqVO.getOrganizationName())
+                        .organizationAddress(ssoRegOrganizerReqVO.getOrganizationAddress())
+                        .organizationCode(ssoRegOrganizerReqVO.getOrganizationCode())
+                        .userPassword("Pass@123")
+                        .build();
+        return this.registerAsOrganizer(regOrganizerReqVO);
     }
 }

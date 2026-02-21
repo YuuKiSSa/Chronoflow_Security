@@ -13,5 +13,7 @@ public interface NotificationDeviceRepository extends JpaRepository<Notification
 
     List<NotificationDeviceDO> findByUserIdAndStatus(String userId, DeviceStatus status);
 
-    boolean existsByUserIdAndToken(String userId, String token);
+    Optional<NotificationDeviceDO> findByUserIdAndToken(String userId, String token);
+
+    Optional<NotificationDeviceDO> findByUserIdAndDeviceId(String userId, String deviceId);
 }

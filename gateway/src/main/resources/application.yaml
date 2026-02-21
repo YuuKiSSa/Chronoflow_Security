@@ -126,6 +126,8 @@ knife4j:
 
 gateway:
   white-list:
+    - /users/auth/exchangeToken
+    - /users/auth/validateOTT
     - /users/auth/login
     - /users/auth/refresh
     - /users/auth/firebase-login

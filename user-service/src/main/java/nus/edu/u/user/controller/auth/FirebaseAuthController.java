@@ -29,8 +29,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Firebase authentication controller.
- * Provides endpoints for Firebase-based login, registration, and token refresh.
+ * Firebase authentication controller. Provides endpoints for Firebase-based login, registration,
+ * and token refresh.
  */
 @Tag(name = "Firebase Authentication Controller")
 @RestController
@@ -48,8 +48,8 @@ public class FirebaseAuthController {
     @Resource private SecurityAuditLogger auditLogger;
 
     /**
-     * Login with Firebase ID token.
-     * The Firebase ID token should be passed in the Authorization header as Bearer token.
+     * Login with Firebase ID token. The Firebase ID token should be passed in the Authorization
+     * header as Bearer token.
      */
     @SaIgnore
     @PostMapping("/firebase-login")
@@ -79,8 +79,8 @@ public class FirebaseAuthController {
     }
 
     /**
-     * Register with Firebase credentials.
-     * The Firebase ID token should be passed in the Authorization header as Bearer token.
+     * Register with Firebase credentials. The Firebase ID token should be passed in the
+     * Authorization header as Bearer token.
      */
     @SaIgnore
     @PostMapping("/firebase-register")
@@ -107,10 +107,7 @@ public class FirebaseAuthController {
         return success(loginRespVO);
     }
 
-    /**
-     * Refresh access token with rotation.
-     * Uses enhanced token rotation with reuse detection.
-     */
+    /** Refresh access token with rotation. Uses enhanced token rotation with reuse detection. */
     @SaIgnore
     @PostMapping("/firebase-refresh")
     @Operation(summary = "Refresh access token with rotation")
@@ -128,9 +125,7 @@ public class FirebaseAuthController {
         return success(loginRespVO);
     }
 
-    /**
-     * Enhanced logout that invalidates both Sa-Token and Firebase tokens.
-     */
+    /** Enhanced logout that invalidates both Sa-Token and Firebase tokens. */
     @PostMapping("/firebase-logout")
     @Operation(summary = "Logout and invalidate all tokens")
     public CommonResult<Boolean> enhancedLogout(
@@ -141,15 +136,14 @@ public class FirebaseAuthController {
 
         // Clear cookie
         AbstractCookieFactory cookieFactory =
-                new ZeroLifeRefreshTokenCookie(cookieConfig.isHttpOnly(), cookieConfig.isSecurity());
+                new ZeroLifeRefreshTokenCookie(
+                        cookieConfig.isHttpOnly(), cookieConfig.isSecurity());
         response.addCookie(cookieFactory.createCookie(null));
 
         return success(true);
     }
 
-    /**
-     * Extract Bearer token from Authorization header.
-     */
+    /** Extract Bearer token from Authorization header. */
     private String extractBearerToken(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new RuntimeException("Missing or invalid Authorization header");
@@ -157,10 +151,9 @@ public class FirebaseAuthController {
         return authHeader.substring(7);
     }
 
-    /**
-     * Set refresh token cookie based on remember preference.
-     */
-    private void setCookies(HttpServletResponse response, LoginRespVO loginRespVO, boolean remember) {
+    /** Set refresh token cookie based on remember preference. */
+    private void setCookies(
+            HttpServletResponse response, LoginRespVO loginRespVO, boolean remember) {
         if (loginRespVO.getRefreshToken() != null) {
             AbstractCookieFactory cookieFactory;
             if (remember) {
@@ -178,9 +171,7 @@ public class FirebaseAuthController {
         }
     }
 
-    /**
-     * Extract client IP from request headers.
-     */
+    /** Extract client IP from request headers. */
     private String getClientIp(HttpServletRequest request) {
         String xff = request.getHeader("X-Forwarded-For");
         if (xff != null && !xff.isBlank()) {
