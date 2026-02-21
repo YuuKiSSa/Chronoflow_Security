@@ -99,7 +99,8 @@ public class MybatisPlusConfig {
                                         || "sys_user_ott".equals(tableName)
                                         || "sys_dict_type".equals(tableName)
                                         || "sys_tenant".equals(tableName)
-                                        || "sys_permission".equals(tableName);
+                                        || "sys_permission".equals(tableName)
+                                        || "audit_log".equals(tableName);
                             }
                         }));
 

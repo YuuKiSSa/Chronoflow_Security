@@ -504,6 +504,7 @@
                         <source>${java.version}</source>
                         <target>${java.version}</target>
                         <fork>true</fork>
+                        <parameters>true</parameters>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.mapstruct</groupId>
