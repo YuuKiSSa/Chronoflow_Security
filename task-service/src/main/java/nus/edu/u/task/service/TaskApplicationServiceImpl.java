@@ -802,5 +802,4 @@ public class TaskApplicationServiceImpl implements TaskApplicationService {
         eventVO.setRemark(event.getRemark());
         return eventVO;
     }
-
 }

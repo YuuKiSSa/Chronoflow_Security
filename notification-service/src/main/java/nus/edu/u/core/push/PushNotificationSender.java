@@ -1,6 +1,5 @@
 package nus.edu.u.core.push;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,18 +8,15 @@ import nus.edu.u.domain.dataObject.common.NotificationEventDO;
 import nus.edu.u.domain.dto.common.NotificationRequestDTO;
 import nus.edu.u.domain.dto.push.PushRequestDTO;
 import nus.edu.u.enums.common.NotificationChannel;
-import nus.edu.u.repositories.common.NotificationEventRepository;
 import nus.edu.u.services.common.NotificationEventService;
 import nus.edu.u.services.push.PushService;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * PUSH sender:
- * 1) Persist notification_event record (server-side inbox)
- * 2) Send minimal push payload to devices: notifId + type (+ optional deepLink)
+ * PUSH sender: 1) Persist notification_event record (server-side inbox) 2) Send minimal push
+ * payload to devices: notifId + type (+ optional deepLink)
  *
- * No template rendering and no sensitive payload in FCM.
+ * <p>No template rendering and no sensitive payload in FCM.
  */
 @Slf4j
 @Component
@@ -73,8 +69,11 @@ public class PushNotificationSender implements NotificationSender {
 
         pushService.sendToUser(request.getRecipientUserId(), base);
 
-        log.info("Push initiated: notifId={}, recipientUserId={}, eventId={}",
-                notifId, request.getRecipientUserId(), request.getEventId());
+        log.info(
+                "Push initiated: notifId={}, recipientUserId={}, eventId={}",
+                notifId,
+                request.getRecipientUserId(),
+                request.getEventId());
 
         return "ACCEPTED";
     }

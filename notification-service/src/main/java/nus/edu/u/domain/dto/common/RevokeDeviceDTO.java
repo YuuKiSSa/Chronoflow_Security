@@ -5,6 +5,5 @@ import lombok.Data;
 
 @Data
 public class RevokeDeviceDTO {
-    @NotBlank
-    private String deviceId;
+    @NotBlank private String deviceId;
 }

@@ -1,5 +1,7 @@
 package nus.edu.u.services.common;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.domain.dataObject.common.NotificationEventDO;
@@ -11,9 +13,6 @@ import nus.edu.u.shared.rpc.user.UserRpcService;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +42,8 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
 
         // 1) Load + ownership check
         NotificationEventDO notif =
-                notificationEventRepo.findByIdAndRecipientUserId(notifId, currentUserId)
+                notificationEventRepo
+                        .findByIdAndRecipientUserId(notifId, currentUserId)
                         .orElseThrow(() -> new IllegalArgumentException("Notification not found"));
 
         // 2) Build notificationEvent section
@@ -61,7 +61,8 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
             throw new IllegalArgumentException("Unsupported objectType: " + notif.getObjectType());
         }
 
-        Long taskId = parseLongOrThrow(notif.getObjectId(), "Invalid taskId: " + notif.getObjectId());
+        Long taskId =
+                parseLongOrThrow(notif.getObjectId(), "Invalid taskId: " + notif.getObjectId());
 
         var task = taskRpc.getTaskDetail(taskId); // shared.rpc.task.TaskDTO
         if (task == null) {
@@ -80,8 +81,7 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
                         .build();
 
         // 4) Resolve actor + event sequentially (best effort)
-        NotificationDetailRespDTO.ActorDTO actor =
-                resolveActorBestEffort(notif.getActorId());
+        NotificationDetailRespDTO.ActorDTO actor = resolveActorBestEffort(notif.getActorId());
 
         NotificationDetailRespDTO.EventResolvedDTO eventResolved =
                 resolveEventBestEffort(taskResolved.getEventId());

@@ -15,10 +15,12 @@ public class TaskNotificationMapper {
     private static String idempotentEventId(NewTaskAssignmentDTO req) {
         return NotificationEventType.buildEventId(
                 NotificationEventType.NEW_TASK_ASSIGN,
-                "task", req.getTaskId(),
-                "event", req.getEventId(),
-                "assignee", req.getAssigneeUserId()
-        );
+                "task",
+                req.getTaskId(),
+                "event",
+                req.getEventId(),
+                "assignee",
+                req.getAssigneeUserId());
     }
 
     /** EMAIL */
@@ -50,14 +52,15 @@ public class TaskNotificationMapper {
     }
 
     /** PUSH */
-    public static NotificationRequestDTO newTaskAssignmentToPushNotification(NewTaskAssignmentDTO req) {
+    public static NotificationRequestDTO newTaskAssignmentToPushNotification(
+            NewTaskAssignmentDTO req) {
 
         return NotificationRequestDTO.builder()
                 .channel(NotificationChannel.PUSH)
                 .type(NotificationEventType.NEW_TASK_ASSIGN)
                 .eventId(idempotentEventId(req))
                 .recipientUserId(req.getAssigneeUserId())
-                .userId(req.getAssigneeUserId()) //temporary
+                .userId(req.getAssigneeUserId()) // temporary
                 .actorId(req.getAssignerUserId())
                 .objectType(NotificationObjectType.TASK)
                 .objectId(String.valueOf(req.getTaskId()))
@@ -66,7 +69,8 @@ public class TaskNotificationMapper {
                 .build();
     }
 
-    public static NotificationRequestDTO newTaskAssignmentToWsNotification(NewTaskAssignmentDTO req) {
+    public static NotificationRequestDTO newTaskAssignmentToWsNotification(
+            NewTaskAssignmentDTO req) {
         Map<String, Object> vars =
                 Map.of(
                         "taskId", req.getTaskId(),

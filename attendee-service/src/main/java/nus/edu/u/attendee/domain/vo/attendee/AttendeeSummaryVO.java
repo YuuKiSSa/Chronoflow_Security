@@ -13,4 +13,3 @@ public class AttendeeSummaryVO {
     private Long checkedIn;
     private Long nonCheckedIn;
 }
-

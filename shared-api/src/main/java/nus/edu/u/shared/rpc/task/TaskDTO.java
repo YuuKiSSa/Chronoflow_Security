@@ -2,7 +2,6 @@ package nus.edu.u.shared.rpc.task;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,5 +22,4 @@ public class TaskDTO implements Serializable {
     private LocalDateTime endTime;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
-
 }

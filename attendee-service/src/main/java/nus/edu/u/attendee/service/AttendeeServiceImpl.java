@@ -3,11 +3,11 @@ package nus.edu.u.attendee.service;
 import static nus.edu.u.common.enums.ErrorCodeConstants.*;
 import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 import static nus.edu.u.framework.mybatis.MybatisPlusConfig.getCurrentTenantId;
+
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import java.time.LocalDateTime;
 import java.util.*;
-
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.attendee.domain.dataobject.EventAttendeeDO;
@@ -427,28 +427,33 @@ public class AttendeeServiceImpl implements AttendeeService {
 
         // 4) Page of NOT checked-in
         Page<EventAttendeeDO> mpPage = new Page<>(p, ps);
-        Page<EventAttendeeDO> result = attendeeMapper.selectNotCheckedInPage(mpPage, eventId, tenantId);
+        Page<EventAttendeeDO> result =
+                attendeeMapper.selectNotCheckedInPage(mpPage, eventId, tenantId);
 
         // 5) Map to simple VO
-        var items = result.getRecords().stream()
-                .map(a -> AttendeeSimpleVO.builder()
-                        .name(a.getAttendeeName())
-                        .email(a.getAttendeeEmail())
-                        .mobile(a.getAttendeeMobile())
-                        .createTime(a.getCreateTime() != null ? a.getCreateTime().toString() : null)
-                        .build())
-                .toList();
+        var items =
+                result.getRecords().stream()
+                        .map(
+                                a ->
+                                        AttendeeSimpleVO.builder()
+                                                .name(a.getAttendeeName())
+                                                .email(a.getAttendeeEmail())
+                                                .mobile(a.getAttendeeMobile())
+                                                .createTime(
+                                                        a.getCreateTime() != null
+                                                                ? a.getCreateTime().toString()
+                                                                : null)
+                                                .build())
+                        .toList();
 
-        PageVO<AttendeeSimpleVO> pageVO = PageVO.<AttendeeSimpleVO>builder()
-                .items(items)
-                .page(p)
-                .pageSize(ps)
-                .total(result.getTotal())
-                .build();
+        PageVO<AttendeeSimpleVO> pageVO =
+                PageVO.<AttendeeSimpleVO>builder()
+                        .items(items)
+                        .page(p)
+                        .pageSize(ps)
+                        .total(result.getTotal())
+                        .build();
 
-        return AttendeeDashboardRespVO.builder()
-                .summary(summary)
-                .attendees(pageVO)
-                .build();
+        return AttendeeDashboardRespVO.builder().summary(summary).attendees(pageVO).build();
     }
 }

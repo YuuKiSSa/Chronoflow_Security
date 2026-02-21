@@ -1,4 +1,5 @@
 package nus.edu.u.domain.dataObject.common;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -13,14 +14,15 @@ import nus.edu.u.enums.common.NotificationEventType;
 @Table(
         name = "notification_event",
         indexes = {
-                // inbox queries: list notifications for a user (newest first)
-                @Index(name = "idx_notif_recipient_created", columnList = "recipient_user_id,created_at"),
-                // unread badge queries
-                @Index(name = "idx_notif_recipient_read", columnList = "recipient_user_id,is_read"),
-                // optional: analytics / admin queries
-                @Index(name = "idx_notif_type_created", columnList = "type,created_at")
-        }
-)
+            // inbox queries: list notifications for a user (newest first)
+            @Index(
+                    name = "idx_notif_recipient_created",
+                    columnList = "recipient_user_id,created_at"),
+            // unread badge queries
+            @Index(name = "idx_notif_recipient_read", columnList = "recipient_user_id,is_read"),
+            // optional: analytics / admin queries
+            @Index(name = "idx_notif_type_created", columnList = "type,created_at")
+        })
 public class NotificationEventDO extends BaseNotificationEntity {
 
     @Id

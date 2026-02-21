@@ -13,7 +13,8 @@ public class AttendeeNotificationMapper {
         return s == null ? "" : s;
     }
 
-    public static NotificationRequestDTO attendeeInvitationToNotification(AttendeeInviteReqDTO req) {
+    public static NotificationRequestDTO attendeeInvitationToNotification(
+            AttendeeInviteReqDTO req) {
 
         // These should NOT be null; fail fast with clear message
         String toEmail = Objects.requireNonNull(req.getToEmail(), "toEmail is null");
@@ -24,22 +25,27 @@ public class AttendeeNotificationMapper {
         vars.put("attendeeMobile", nz(req.getAttendeeMobile()));
         vars.put("organizationName", nz(req.getOrganizationName()));
         vars.put("eventName", nz(req.getEventName()));
-        vars.put("eventDate", req.getEventDate() == null ? "" : req.getEventDate()); // keep as-is if it's not String
+        vars.put(
+                "eventDate",
+                req.getEventDate() == null
+                        ? ""
+                        : req.getEventDate()); // keep as-is if it's not String
         vars.put("eventLocation", nz(req.getEventLocation()));
         vars.put("eventDescription", nz(req.getEventDescription()));
 
         List<AttachmentDTO> attachments =
                 (req.getQrCodeBytes() != null)
                         ? List.of(
-                        AttachmentDTO.builder()
-                                .filename("qrcode.png")
-                                .contentType(nz(req.getQrCodeContentType()).isEmpty()
-                                        ? "image/png"
-                                        : req.getQrCodeContentType())
-                                .bytes(req.getQrCodeBytes())
-                                .inline(true)
-                                .contentId("qr-code")
-                                .build())
+                                AttachmentDTO.builder()
+                                        .filename("qrcode.png")
+                                        .contentType(
+                                                nz(req.getQrCodeContentType()).isEmpty()
+                                                        ? "image/png"
+                                                        : req.getQrCodeContentType())
+                                        .bytes(req.getQrCodeBytes())
+                                        .inline(true)
+                                        .contentId("qr-code")
+                                        .build())
                         : List.of();
 
         return NotificationRequestDTO.builder()

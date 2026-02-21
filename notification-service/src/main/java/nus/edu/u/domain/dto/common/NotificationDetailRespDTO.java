@@ -1,12 +1,12 @@
 package nus.edu.u.domain.dto.common;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 @Data
 @Builder
@@ -19,7 +19,10 @@ public class NotificationDetailRespDTO {
     private TaskResolvedDTO task;
     private EventResolvedDTO event;
 
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class NotificationEventDTO {
         private String id;
         private String type;
@@ -28,13 +31,19 @@ public class NotificationDetailRespDTO {
         private LocalDateTime readAt;
     }
 
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ActorDTO {
         private String id;
         private String name;
     }
 
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class TaskResolvedDTO {
         @JsonSerialize(using = ToStringSerializer.class)
         private Long id;
@@ -49,7 +58,10 @@ public class NotificationDetailRespDTO {
         private LocalDateTime endTime;
     }
 
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class EventResolvedDTO {
         @JsonSerialize(using = ToStringSerializer.class)
         private Long id;

@@ -14,7 +14,6 @@ import nus.edu.u.shared.rpc.task.TaskDTO;
 import nus.edu.u.shared.rpc.task.TaskRpcService;
 import nus.edu.u.task.domain.dataobject.task.TaskDO;
 import nus.edu.u.task.domain.dataobject.task.TaskLogDO;
-import nus.edu.u.task.domain.vo.task.TaskRespVO;
 import nus.edu.u.task.enums.TaskStatusEnum;
 import nus.edu.u.task.mapper.TaskLogMapper;
 import nus.edu.u.task.mapper.TaskMapper;

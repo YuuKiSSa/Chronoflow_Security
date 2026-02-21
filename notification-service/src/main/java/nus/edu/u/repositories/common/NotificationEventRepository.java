@@ -38,7 +38,8 @@ public interface NotificationEventRepository extends JpaRepository<NotificationE
 
     // ---------- Mark read (atomic update) ----------
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("""
+    @Query(
+            """
         update NotificationEventDO n
            set n.read = true,
                n.readAt = :readAt

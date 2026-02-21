@@ -16,7 +16,8 @@ public class NotificationEventServiceImpl implements NotificationEventService {
     private final NotificationEventRepository repo;
 
     @Override
-    public NotificationEventDO createFromRequest(nus.edu.u.domain.dto.common.NotificationRequestDTO req) {
+    public NotificationEventDO createFromRequest(
+            nus.edu.u.domain.dto.common.NotificationRequestDTO req) {
         if (req == null) throw new IllegalArgumentException("request is required");
         if (req.getRecipientUserId() == null || req.getRecipientUserId().isBlank())
             throw new IllegalArgumentException("recipientUserId is required");
@@ -40,6 +41,4 @@ public class NotificationEventServiceImpl implements NotificationEventService {
 
         return repo.save(row);
     }
-
-
 }

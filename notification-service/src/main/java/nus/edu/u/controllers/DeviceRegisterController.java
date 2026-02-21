@@ -23,9 +23,12 @@ public class DeviceRegisterController {
         StpUtil.checkLogin();
         String userId = String.valueOf(StpUtil.getLoginIdAsLong());
 
-        log.info("[PUSH] registerDevice userId={}, token?={}, deviceId={}, platform={}",
+        log.info(
+                "[PUSH] registerDevice userId={}, token?={}, deviceId={}, platform={}",
                 userId,
-                dto.getToken() != null ? dto.getToken().substring(0, Math.min(12, dto.getToken().length())) : null,
+                dto.getToken() != null
+                        ? dto.getToken().substring(0, Math.min(12, dto.getToken().length()))
+                        : null,
                 dto.getDeviceId(),
                 dto.getPlatform());
 

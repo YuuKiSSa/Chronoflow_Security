@@ -19,7 +19,7 @@ public class NotificationRequestDTO {
 
     private NotificationChannel channel;
 
-    //lagacy fields
+    // lagacy fields
     private String to;
     private String recipientKey;
     private String templateId;
@@ -30,15 +30,15 @@ public class NotificationRequestDTO {
     private String eventId;
 
     // --- new "notification_event" aligned fields ---
-    private String recipientUserId;   // maps to notification.recipient_user_id
-    private String actorId;           // maps to notification.actor_id
-    private NotificationObjectType objectType;        // maps to notification.object_type (e.g. TASK)
-    private String objectId;          // maps to notification.object_id
-    private String previewText;       // maps to notification.preview_text (safe)
+    private String recipientUserId; // maps to notification.recipient_user_id
+    private String actorId; // maps to notification.actor_id
+    private NotificationObjectType objectType; // maps to notification.object_type (e.g. TASK)
+    private String objectId; // maps to notification.object_id
+    private String previewText; // maps to notification.preview_text (safe)
     private String title;
 
     private NotificationEventType type;
 
-    //maybe remove later
+    // maybe remove later
     private String userId;
 }

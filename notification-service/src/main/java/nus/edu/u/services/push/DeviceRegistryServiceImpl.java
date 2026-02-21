@@ -9,7 +9,6 @@ import nus.edu.u.domain.dto.common.NotificationDeviceViewDTO;
 import nus.edu.u.enums.common.DeviceStatus;
 import nus.edu.u.enums.push.PushPlatform;
 import nus.edu.u.repositories.common.NotificationDeviceRepository;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,39 +23,46 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
     @Override
     @Transactional
     public void register(String userId, DeviceRegisterDTO dto) {
-        if (userId == null || userId.isBlank()) throw new IllegalArgumentException("userId is required");
+        if (userId == null || userId.isBlank())
+            throw new IllegalArgumentException("userId is required");
         if (dto == null) throw new IllegalArgumentException("body is required");
 
         String deviceId = dto.getDeviceId() == null ? null : dto.getDeviceId().trim();
         String token = dto.getToken() == null ? null : dto.getToken().trim();
 
-        if (deviceId == null || deviceId.isBlank()) throw new IllegalArgumentException("deviceId is required");
-        if (token == null || token.isBlank()) throw new IllegalArgumentException("token is required");
+        if (deviceId == null || deviceId.isBlank())
+            throw new IllegalArgumentException("deviceId is required");
+        if (token == null || token.isBlank())
+            throw new IllegalArgumentException("token is required");
 
         PushPlatform platform = Optional.ofNullable(dto.getPlatform()).orElse(PushPlatform.WEB);
 
         // 1) Upsert by (userId, deviceId)
-        NotificationDeviceDO device =
-                repo.findByUserIdAndDeviceId(userId, deviceId).orElse(null);
+        NotificationDeviceDO device = repo.findByUserIdAndDeviceId(userId, deviceId).orElse(null);
 
         if (device == null) {
             // optional: if token is already stored elsewhere, revoke it (enforce uniqueness)
-            repo.findByToken(token).ifPresent(other -> {
-                // If the token is linked to a different device record, revoke that record
-                // (or you can delete it, but revoke is safer/auditable)
-                if (!other.getUserId().equals(userId) || !other.getDeviceId().equals(deviceId)) {
-                    other.setStatus(DeviceStatus.REVOKED);
-                    repo.save(other);
-                }
-            });
+            repo.findByToken(token)
+                    .ifPresent(
+                            other -> {
+                                // If the token is linked to a different device record, revoke that
+                                // record
+                                // (or you can delete it, but revoke is safer/auditable)
+                                if (!other.getUserId().equals(userId)
+                                        || !other.getDeviceId().equals(deviceId)) {
+                                    other.setStatus(DeviceStatus.REVOKED);
+                                    repo.save(other);
+                                }
+                            });
 
-            repo.save(NotificationDeviceDO.builder()
-                    .userId(userId)
-                    .deviceId(deviceId)
-                    .platform(platform)
-                    .token(token)
-                    .status(DeviceStatus.ACTIVE)
-                    .build());
+            repo.save(
+                    NotificationDeviceDO.builder()
+                            .userId(userId)
+                            .deviceId(deviceId)
+                            .platform(platform)
+                            .token(token)
+                            .status(DeviceStatus.ACTIVE)
+                            .build());
             return;
         }
 
@@ -65,12 +71,14 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
 
         if (!token.equals(device.getToken())) {
             // optional: enforce token uniqueness by revoking the other row that holds this token
-            repo.findByToken(token).ifPresent(other -> {
-                if (!other.getId().equals(device.getId())) {
-                    other.setStatus(DeviceStatus.REVOKED);
-                    repo.save(other);
-                }
-            });
+            repo.findByToken(token)
+                    .ifPresent(
+                            other -> {
+                                if (!other.getId().equals(device.getId())) {
+                                    other.setStatus(DeviceStatus.REVOKED);
+                                    repo.save(other);
+                                }
+                            });
 
             device.setToken(token);
             changed = true;
@@ -104,14 +112,17 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
     @Override
     @Transactional
     public void revokeByDeviceId(String userId, String deviceId) {
-        if (userId == null || userId.isBlank()) throw new IllegalArgumentException("userId is required");
-        if (deviceId == null || deviceId.isBlank()) throw new IllegalArgumentException("deviceId is required");
+        if (userId == null || userId.isBlank())
+            throw new IllegalArgumentException("userId is required");
+        if (deviceId == null || deviceId.isBlank())
+            throw new IllegalArgumentException("deviceId is required");
 
         repo.findByUserIdAndDeviceId(userId, deviceId.trim())
-                .ifPresent(d -> {
-                    d.setStatus(DeviceStatus.REVOKED);
-                    repo.save(d);
-                });
+                .ifPresent(
+                        d -> {
+                            d.setStatus(DeviceStatus.REVOKED);
+                            repo.save(d);
+                        });
     }
 
     @Override
@@ -122,10 +133,11 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
         if (token == null || token.isBlank()) return;
 
         repo.findByUserIdAndToken(userId, token.trim())
-                .ifPresent(d -> {
-                    d.setStatus(DeviceStatus.REVOKED);
-                    repo.save(d);
-                });
+                .ifPresent(
+                        d -> {
+                            d.setStatus(DeviceStatus.REVOKED);
+                            repo.save(d);
+                        });
 
         // Intentionally do nothing if not found:
         // - idempotent

@@ -41,8 +41,7 @@ public class AttendeeController {
     public CommonResult<AttendeeDashboardRespVO> dashboard(
             @PathVariable("eventId") @NotNull Long eventId,
             @RequestParam(name = "page", defaultValue = "1") Integer page,
-            @RequestParam(name = "pageSize", defaultValue = "20") Integer pageSize
-    ) {
+            @RequestParam(name = "pageSize", defaultValue = "20") Integer pageSize) {
         return success(attendeeService.getDashboard(eventId, page, pageSize));
     }
 

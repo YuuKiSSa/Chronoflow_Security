@@ -20,55 +20,48 @@ import nus.edu.u.shared.rpc.notification.enums.NotificationObjectType;
 public class NotificationRequestDTO {
 
     // ---- routing / envelope ----
-    @NotNull
-    private NotificationChannel channel;
+    @NotNull private NotificationChannel channel;
 
     /**
-     * Idempotency key for this notification request.
-     * (You already use it across channels; keep it.)
+     * Idempotency key for this notification request. (You already use it across channels; keep it.)
      */
-    @NotBlank
-    private String eventId;
+    @NotBlank private String eventId;
 
-    @NotNull
-    private NotificationEventType type;
+    @NotNull private NotificationEventType type;
 
     // ---- NEW: notification_event aligned fields (push/ws future) ----
     /**
-     * Who receives the notification (inbox owner).
-     * For PUSH you will use this to fan-out to devices.
+     * Who receives the notification (inbox owner). For PUSH you will use this to fan-out to
+     * devices.
      */
-    @NotBlank
-    private String recipientUserId;
+    @NotBlank private String recipientUserId;
 
     /** Who caused it (assigner / actor). Optional. */
     private String actorId;
 
     /** Generic target type (TASK/EVENT/COMMENT...). Optional but recommended. */
-    @NotNull
-    private NotificationObjectType objectType;
+    @NotNull private NotificationObjectType objectType;
 
     /** Generic target id (taskId, eventId, commentId...). Optional but recommended. */
-    @NotBlank
-    private String objectId;
+    @NotBlank private String objectId;
 
-    @NotBlank
-    private String title;
+    @NotBlank private String title;
 
     /** Non-sensitive preview used for push body/inbox list. Optional. */
     private String previewText;
 
     // ---- LEGACY fields (keep only while email/ws still using them) ----
-    private String to;                  // e.g. email address
-    private String recipientKey;        // e.g. "email:foo@bar.com" (push no longer needs it from publisher)
-    private String templateId;          // email template, ws legacy
+    private String to; // e.g. email address
+    private String
+            recipientKey; // e.g. "email:foo@bar.com" (push no longer needs it from publisher)
+    private String templateId; // email template, ws legacy
     private Map<String, Object> variables;
     private Locale locale;
     private List<AttachmentDTO> attachments;
 
     /**
-     * TEMP only: to avoid breaking existing code paths that still call getUserId()
-     * (e.g., your current push sender expects userId). Plan to remove.
+     * TEMP only: to avoid breaking existing code paths that still call getUserId() (e.g., your
+     * current push sender expects userId). Plan to remove.
      */
     private String userId;
 

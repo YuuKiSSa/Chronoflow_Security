@@ -23,6 +23,4 @@ public class DeviceRegisterDTO {
 
     /** Device status (optional, usually ACTIVE on registration) */
     @Builder.Default private DeviceStatus status = DeviceStatus.ACTIVE;
-
-
 }

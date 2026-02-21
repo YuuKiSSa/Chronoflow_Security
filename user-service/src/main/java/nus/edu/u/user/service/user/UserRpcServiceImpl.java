@@ -52,7 +52,7 @@ public class UserRpcServiceImpl implements UserRpcService {
 
         return UserProfileDTO.builder()
                 .id(user.getId())
-                .name(user.getUsername())   // mapping username -> name
+                .name(user.getUsername()) // mapping username -> name
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .roles(Collections.emptyList())

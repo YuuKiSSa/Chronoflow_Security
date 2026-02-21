@@ -1,13 +1,13 @@
 package nus.edu.u.controllers;
 
+import static nus.edu.u.common.core.domain.CommonResult.success;
+
 import cn.dev33.satoken.stp.StpUtil;
 import lombok.RequiredArgsConstructor;
 import nus.edu.u.common.core.domain.CommonResult;
 import nus.edu.u.domain.dto.common.NotificationDetailRespDTO;
 import nus.edu.u.services.common.NotificationQueryService;
 import org.springframework.web.bind.annotation.*;
-
-import static nus.edu.u.common.core.domain.CommonResult.success;
 
 @RestController
 @RequestMapping("/notifications")
@@ -18,8 +18,7 @@ public class NotificationQueryController {
 
     @GetMapping("/{notifId}")
     public CommonResult<NotificationDetailRespDTO> getNotificationDetail(
-            @PathVariable("notifId") String notifId
-    ) {
+            @PathVariable("notifId") String notifId) {
         StpUtil.checkLogin();
         String currentUserId = String.valueOf(StpUtil.getLoginIdAsLong());
 
