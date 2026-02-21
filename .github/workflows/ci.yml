@@ -2,7 +2,10 @@ name: Microservices CI
 on:
   push:
     branches:
-      - chore/restore-ci
+      - dev
+  pull_request:
+    branches:
+      - dev
 
 permissions:
   contents: read
