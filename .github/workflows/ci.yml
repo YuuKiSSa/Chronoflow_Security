@@ -1,0 +1,63 @@
+name: Microservices CI
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+  pull-requests: read
+  packages: write
+
+jobs:
+  detect-changes:
+    name: Detect Changed Services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set-services.outputs.all }}
+    steps:
+      - name: Set all services list
+        id: set-services
+        run: |
+          echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\", \"file-service\", \"event-service\", \"attendee-service\"]" >> $GITHUB_OUTPUT
+
+  build-and-test:
+    name: Build & JUnit & Lint- ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.services != '[]'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Lint (Spotless + Checkstyle) for ${{ matrix.service }}
+        run: mvn -B -pl ${{ matrix.service }} -am spotless:check checkstyle:check
+
+      - name: Build & Run tests for ${{ matrix.service }}
+        run: mvn -B -pl ${{ matrix.service }} -am test
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        if: hashFiles(format('{0}/target/site/jacoco/', matrix.service)) != ''
+        with:
+          name: ${{ matrix.service }}-test-results
+          path: ./${{ matrix.service }}/target/site/jacoco/*
+          retention-days: 1
