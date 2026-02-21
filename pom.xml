@@ -75,7 +75,6 @@
         <gatling.version>3.14.9</gatling.version>
         <logback.version>1.5.27</logback.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
-        <netty.shaded.version>1.75.0</netty.shaded.version>
 
         <!-- SonarQube -->
         <sonar.coverage.exclusions>**/generated/**,**/*Generated*,**/*MapperImpl.class</sonar.coverage.exclusions>
@@ -102,12 +101,6 @@
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java-util</artifactId>
                 <version>${protobuf.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.grpc</groupId>
-                <artifactId>grpc-netty-shaded</artifactId>
-                <version>${netty.shaded.version}</version>
             </dependency>
 
             <dependency>
