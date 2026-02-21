@@ -17,12 +17,63 @@ jobs:
     name: Detect Changed Services
     runs-on: ubuntu-latest
     outputs:
-      services: ${{ steps.set-services.outputs.all }}
+      services: ${{ steps.resolve.outputs.services }}
+      all-services: ${{ steps.set-services.outputs.all }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed services
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            user-service:
+              - 'user-service/**'
+            task-service:
+              - 'task-service/**'
+            notification-service:
+              - 'notification-service/**'
+            gateway:
+              - 'gateway/**'
+            file-service:
+              - 'file-service/**'
+            event-service:
+              - 'event-service/**'
+            attendee-service:
+              - 'attendee-service/**'
+            shared-modules:
+              - 'framework/**'
+              - 'common/**'
+              - 'shared-api/**'
+              - 'pom.xml'
       - name: Set all services list
         id: set-services
         run: |
           echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\", \"file-service\", \"event-service\", \"attendee-service\"]" >> $GITHUB_OUTPUT
+      - name: Determine affected services
+        id: resolve
+        run: |
+          CHANGED='${{ steps.filter.outputs.changes }}'
+          if [ "$CHANGED" = "[]" ] || [ -z "$CHANGED" ]; then
+            echo "services=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if echo "$CHANGED" | jq -e 'index("shared-modules")' >/dev/null; then
+            echo "Shared module changed. Building all services."
+            ALL_SERVICES='${{ steps.set-services.outputs.all }}'
+            echo "services=$ALL_SERVICES" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if echo "$CHANGED" | jq empty 2>/dev/null; then
+            echo "services=$CHANGED" >> "$GITHUB_OUTPUT"
+          elif [ "$CHANGED" != "" ]; then
+            json=$(printf '%s' "$CHANGED" | jq -Rsc 'gsub("\n";",") | split(",") | map(select(length>0)) | map(gsub("^\\s+|\\s+$";""))')
+            echo "services=$json" >> "$GITHUB_OUTPUT"
+          else
+            echo "services=[]" >> "$GITHUB_OUTPUT"
+          fi
 
   build-and-test:
     name: Build & JUnit & Lint- ${{ matrix.service }}
