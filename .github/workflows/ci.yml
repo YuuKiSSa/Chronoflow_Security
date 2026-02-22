@@ -118,12 +118,17 @@ jobs:
     permissions:
       security-events: write
       contents: read
-    needs: [ detect-changes, build-and-test ]
-    if: needs.detect-changes.outputs.services != '[]'
     strategy:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.services) }}
       fail-fast: false
+    needs: [ detect-changes, build-and-test ]
+    if: needs.detect-changes.outputs.services != '[]'
+
+    env:
+      SBOM_FILE: ${{ matrix.service }}-sbom.spdx.json
+      SARIF_REPORT: ${{ matrix.service }}-sca.sarif
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -137,27 +142,22 @@ jobs:
       - name: Build (skip tests) for ${{ matrix.service }}
         run: mvn -B -pl ${{ matrix.service }} -am package -DskipTests
 
-      - name: Set report filenames
+      - name: Build Docker image locally
         run: |
-          echo "SBOM_FILE=${{ matrix.service }}-sbom.cdx.json" >> $GITHUB_ENV
-          echo "SARIF_REPORT=${{ matrix.service }}-grype-report.sarif" >> $GITHUB_ENV
-          echo "TABLE_REPORT=${{ matrix.service }}-grype-report.txt" >> $GITHUB_ENV
-      - name: Generate SBOM (CycloneDX JSON)
+          docker build -t localbuild/${{ matrix.service }}:${{ github.sha }} ./${{ matrix.service }}
+
+      - name: Generate SBOM via Syft
         uses: anchore/sbom-action@v0
         with:
-          path: ./${{ matrix.service }}
-          format: cyclonedx-json
+          image: localbuild/${{ matrix.service }}:${{ github.sha }}
+          format: spdx-json
           output-file: ${{ env.SBOM_FILE }}
-          upload-artifact: false
-          upload-release-assets: false
+
 
       - name: SCA via Anchore (SARIF)
         uses: anchore/scan-action@v6
         with:
           sbom: ${{ env.SBOM_FILE }}
-          fail-build: false
-          severity-cutoff: low
-          only-fixed: false
           output-format: sarif
           output-file: ${{ env.SARIF_REPORT }}
 
@@ -165,16 +165,15 @@ jobs:
         uses: anchore/scan-action@v6
         with:
           sbom: ${{ env.SBOM_FILE }}
-          fail-build: false
-          severity-cutoff: high
-          only-fixed: true
           output-format: table
           output-file: ${{ env.TABLE_REPORT }}
+
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: ${{ env.SARIF_REPORT }}
+          category: ${{matrix.service}}
       - name: Upload SBOM & SCA artifacts
         if: always()
         uses: actions/upload-artifact@v4
