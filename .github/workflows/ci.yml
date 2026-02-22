@@ -162,6 +162,7 @@ jobs:
           output-format: sarif
           output-file: ${{ env.SARIF_REPORT }}
           fail-build: false
+          severity-cutoff: 'high'
 
       - name: SCA via Anchore (table)
         uses: anchore/scan-action@v6
@@ -170,6 +171,7 @@ jobs:
           output-format: table
           output-file: ${{ env.TABLE_REPORT }}
           fail-build: false
+          severity-cutoff: 'high'
 
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
