@@ -2,10 +2,10 @@ name: Microservices CI
 on:
   push:
     branches:
-      - chore/restore-ci
+      - dev
   pull_request:
     branches:
-      - chore/restore-ci
+      - dev
 
 permissions:
   contents: read
@@ -152,7 +152,8 @@ jobs:
           image: localbuild/${{ matrix.service }}:${{ github.sha }}
           format: spdx-json
           output-file: ${{ env.SBOM_FILE }}
-
+          upload-artifact: false
+          upload-release-assets: false
 
 
       - name: SCA via Anchore (SARIF)
@@ -179,6 +180,7 @@ jobs:
         with:
           sarif_file: ${{ env.SARIF_REPORT }}
           category: ${{matrix.service}}
+
       - name: Upload SBOM & SCA artifacts
         if: always()
         uses: actions/upload-artifact@v4
