@@ -128,7 +128,7 @@ jobs:
     env:
       SBOM_FILE: ${{ matrix.service }}-sbom.spdx.json
       SARIF_REPORT: ${{ matrix.service }}-sca.sarif
-
+      TABLE_REPORT: ${{ matrix.service }}-report.txt
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -185,4 +185,5 @@ jobs:
           path: |
             ${{ env.SBOM_FILE }}
             ${{ env.TABLE_REPORT }}
+            ${{ env.SARIF_REPORT }}
           retention-days: 5
