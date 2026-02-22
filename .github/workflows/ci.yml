@@ -115,6 +115,9 @@ jobs:
   sca-sbom:
     name: SCA & SBOM - ${{ matrix.service }}
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
     needs: [ detect-changes, build-and-test ]
     if: needs.detect-changes.outputs.services != '[]'
     strategy:
@@ -168,8 +171,8 @@ jobs:
           output-format: table
           output-file: ${{ env.TABLE_REPORT }}
       - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: ${{ env.SARIF_REPORT }}
       - name: Upload SBOM & SCA artifacts
