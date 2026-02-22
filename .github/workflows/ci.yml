@@ -156,8 +156,8 @@ jobs:
         with:
           sbom: ${{ env.SBOM_FILE }}
           fail-build: false
-          severity-cutoff: high
-          only-fixed: true
+          severity-cutoff: low
+          only-fixed: false
           output-format: sarif
           output-file: ${{ env.SARIF_REPORT }}
 
