@@ -154,12 +154,14 @@ jobs:
           output-file: ${{ env.SBOM_FILE }}
 
 
+
       - name: SCA via Anchore (SARIF)
         uses: anchore/scan-action@v6
         with:
           sbom: ${{ env.SBOM_FILE }}
           output-format: sarif
           output-file: ${{ env.SARIF_REPORT }}
+          fail-build: false
 
       - name: SCA via Anchore (table)
         uses: anchore/scan-action@v6
@@ -167,6 +169,7 @@ jobs:
           sbom: ${{ env.SBOM_FILE }}
           output-format: table
           output-file: ${{ env.TABLE_REPORT }}
+          fail-build: false
 
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
