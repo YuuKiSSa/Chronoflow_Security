@@ -2,10 +2,10 @@ name: Microservices CI
 on:
   push:
     branches:
-      - dev
+      - chore/restore-ci
   pull_request:
     branches:
-      - dev
+      - chore/restore-ci
 
 permissions:
   contents: read
@@ -112,3 +112,69 @@ jobs:
           name: ${{ matrix.service }}-test-results
           path: ./${{ matrix.service }}/target/site/jacoco/*
           retention-days: 1
+  sca-sbom:
+    name: SCA & SBOM - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [ detect-changes, build-and-test ]
+    if: needs.detect-changes.outputs.services != '[]'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Build (skip tests) for ${{ matrix.service }}
+        run: mvn -B -pl ${{ matrix.service }} -am package -DskipTests
+
+      - name: Set report filenames
+        run: |
+          echo "SBOM_FILE=${{ matrix.service }}-sbom.cdx.json" >> $GITHUB_ENV
+          echo "SARIF_REPORT=${{ matrix.service }}-grype-report.sarif" >> $GITHUB_ENV
+          echo "TABLE_REPORT=${{ matrix.service }}-grype-report.txt" >> $GITHUB_ENV
+      - name: Generate SBOM (CycloneDX JSON)
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./${{ matrix.service }}
+          format: cyclonedx-json
+          output-file: ${{ env.SBOM_FILE }}
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: SCA via Anchore (SARIF)
+        uses: anchore/scan-action@v6
+        with:
+          sbom: ${{ env.SBOM_FILE }}
+          fail-build: false
+          severity-cutoff: high
+          only-fixed: true
+          output-format: sarif
+          output-file: ${{ env.SARIF_REPORT }}
+
+      - name: SCA via Anchore (table)
+        uses: anchore/scan-action@v6
+        with:
+          sbom: ${{ env.SBOM_FILE }}
+          fail-build: false
+          severity-cutoff: high
+          only-fixed: true
+          output-format: table
+          output-file: ${{ env.TABLE_REPORT }}
+
+      - name: Upload SBOM & SCA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-and-sca-${{ matrix.service }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.SBOM_FILE }}
+            ${{ env.SARIF_REPORT }}
+            ${{ env.TABLE_REPORT }}
+          retention-days: 5
