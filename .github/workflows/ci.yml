@@ -2,10 +2,10 @@ name: Microservices CI
 on:
   push:
     branches:
-      - dev
+      - chore/add-back-sonar-scan
   pull_request:
     branches:
-      - dev
+      - chore/add-back-sonar-scan
 
 permissions:
   contents: read
@@ -17,12 +17,63 @@ jobs:
     name: Detect Changed Services
     runs-on: ubuntu-latest
     outputs:
-      services: ${{ steps.set-services.outputs.all }}
+      services: ${{ steps.resolve.outputs.services }}
+      all-services: ${{ steps.set-services.outputs.all }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed services
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            user-service:
+              - 'user-service/**'
+            task-service:
+              - 'task-service/**'
+            notification-service:
+              - 'notification-service/**'
+            gateway:
+              - 'gateway/**'
+            file-service:
+              - 'file-service/**'
+            event-service:
+              - 'event-service/**'
+            attendee-service:
+              - 'attendee-service/**'
+            shared-modules:
+              - 'framework/**'
+              - 'common/**'
+              - 'shared-api/**'
+              - 'pom.xml'
       - name: Set all services list
         id: set-services
         run: |
           echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\", \"file-service\", \"event-service\", \"attendee-service\"]" >> $GITHUB_OUTPUT
+      - name: Determine affected services
+        id: resolve
+        run: |
+          CHANGED='${{ steps.filter.outputs.changes }}'
+          if [ "$CHANGED" = "[]" ] || [ -z "$CHANGED" ]; then
+            echo "services=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if echo "$CHANGED" | jq -e 'index("shared-modules")' >/dev/null; then
+            echo "Shared module changed. Building all services."
+            ALL_SERVICES='${{ steps.set-services.outputs.all }}'
+            echo "services=$ALL_SERVICES" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if echo "$CHANGED" | jq empty 2>/dev/null; then
+            echo "services=$CHANGED" >> "$GITHUB_OUTPUT"
+          elif [ "$CHANGED" != "" ]; then
+            json=$(printf '%s' "$CHANGED" | jq -Rsc 'gsub("\n";",") | split(",") | map(select(length>0)) | map(gsub("^\\s+|\\s+$";""))')
+            echo "services=$json" >> "$GITHUB_OUTPUT"
+          else
+            echo "services=[]" >> "$GITHUB_OUTPUT"
+          fi
 
   build-and-test:
     name: Build & JUnit & Lint- ${{ matrix.service }}
@@ -34,7 +85,6 @@ jobs:
         service: ${{ fromJson(needs.detect-changes.outputs.services) }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -61,3 +111,125 @@ jobs:
           name: ${{ matrix.service }}-test-results
           path: ./${{ matrix.service }}/target/site/jacoco/*
           retention-days: 1
+  sca-sbom:
+    name: SCA & SBOM - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    needs: [ detect-changes, build-and-test ]
+    if: needs.detect-changes.outputs.services != '[]'
+
+    env:
+      SBOM_FILE: ${{ matrix.service }}-sbom.spdx.json
+      SARIF_REPORT: ${{ matrix.service }}-sca.sarif
+      TABLE_REPORT: ${{ matrix.service }}-report.txt
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Build (skip tests) for ${{ matrix.service }}
+        run: mvn -B -pl ${{ matrix.service }} -am package -DskipTests
+
+      - name: Build Docker image locally
+        run: |
+          docker build -t localbuild/${{ matrix.service }}:${{ github.sha }} ./${{ matrix.service }}
+
+      - name: Generate SBOM via Syft
+        uses: anchore/sbom-action@v0
+        with:
+          image: localbuild/${{ matrix.service }}:${{ github.sha }}
+          format: spdx-json
+          output-file: ${{ env.SBOM_FILE }}
+          upload-artifact: false
+          upload-release-assets: false
+
+
+      - name: SCA via Anchore (SARIF)
+        uses: anchore/scan-action@v6
+        with:
+          sbom: ${{ env.SBOM_FILE }}
+          output-format: sarif
+          output-file: ${{ env.SARIF_REPORT }}
+          fail-build: false
+          severity-cutoff: 'high'
+
+      - name: SCA via Anchore (table)
+        uses: anchore/scan-action@v6
+        with:
+          sbom: ${{ env.SBOM_FILE }}
+          output-format: table
+          output-file: ${{ env.TABLE_REPORT }}
+          fail-build: false
+          severity-cutoff: 'high'
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          sarif_file: ${{ env.SARIF_REPORT }}
+          category: ${{matrix.service}}
+
+      - name: Upload SBOM & SCA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-and-sca-${{ matrix.service }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.SBOM_FILE }}
+            ${{ env.TABLE_REPORT }}
+            ${{ env.SARIF_REPORT }}
+          retention-days: 5
+  sonar-scan:
+    name: Sonar Scan
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: detect-changes
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+        run: |
+          mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization="${SONAR_ORGANIZATION}" \
+            -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
+            -Dsonar.exclusions="common/**/*,framework/**/*,notification-service/**/*,wsgateway/**/*" \
+            -Dsonar.coverage.exclusions="common/**/*,framework/**/*,notification-service/**/*,wsgateway/**/*"
