@@ -10,7 +10,6 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  packages: write
 
 jobs:
   detect-changes:
@@ -85,7 +84,6 @@ jobs:
         service: ${{ fromJson(needs.detect-changes.outputs.services) }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -116,7 +114,6 @@ jobs:
     name: SCA & SBOM - ${{ matrix.service }}
     runs-on: ubuntu-latest
     permissions:
-      security-events: write
       contents: read
     strategy:
       matrix:
@@ -127,7 +124,6 @@ jobs:
 
     env:
       SBOM_FILE: ${{ matrix.service }}-sbom.spdx.json
-      SARIF_REPORT: ${{ matrix.service }}-sca.sarif
       TABLE_REPORT: ${{ matrix.service }}-report.txt
     steps:
       - name: Checkout
@@ -155,16 +151,6 @@ jobs:
           upload-artifact: false
           upload-release-assets: false
 
-
-      - name: SCA via Anchore (SARIF)
-        uses: anchore/scan-action@v6
-        with:
-          sbom: ${{ env.SBOM_FILE }}
-          output-format: sarif
-          output-file: ${{ env.SARIF_REPORT }}
-          fail-build: false
-          severity-cutoff: 'high'
-
       - name: SCA via Anchore (table)
         uses: anchore/scan-action@v6
         with:
@@ -174,13 +160,6 @@ jobs:
           fail-build: false
           severity-cutoff: 'high'
 
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        with:
-          sarif_file: ${{ env.SARIF_REPORT }}
-          category: ${{matrix.service}}
-
       - name: Upload SBOM & SCA artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -189,5 +168,41 @@ jobs:
           path: |
             ${{ env.SBOM_FILE }}
             ${{ env.TABLE_REPORT }}
-            ${{ env.SARIF_REPORT }}
           retention-days: 5
+  sonar-scan:
+    name: Sonar Scan
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: detect-changes
+    if: github.event_name == 'push'
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -DskipTests=true \
+            -Djacoco.skip=true -Dsonar.projectKey=yet-another-spaghetti-coder_chronoflow-backend

@@ -125,6 +125,18 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.10</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
                             <includes>
                                 <include>nus/edu/u/gateway/util/WebFrameworkUtils*</include>
                                 <include>nus/edu/u/gateway/handler/GlobalExceptionHandler*</include>
