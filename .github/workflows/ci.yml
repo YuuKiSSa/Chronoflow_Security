@@ -225,5 +225,5 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -DskipTests=true ^
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -DskipTests=true \
             -Djacoco.skip=true -Dsonar.projectKey=yet-another-spaghetti-coder_chronoflow-backend
