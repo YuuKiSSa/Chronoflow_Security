@@ -10,7 +10,6 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  packages: write
 
 jobs:
   detect-changes:
@@ -126,7 +125,6 @@ jobs:
 
     env:
       SBOM_FILE: ${{ matrix.service }}-sbom.spdx.json
-      SARIF_REPORT: ${{ matrix.service }}-sca.sarif
       TABLE_REPORT: ${{ matrix.service }}-report.txt
     steps:
       - name: Checkout
@@ -154,16 +152,6 @@ jobs:
           upload-artifact: false
           upload-release-assets: false
 
-
-      - name: SCA via Anchore (SARIF)
-        uses: anchore/scan-action@v6
-        with:
-          sbom: ${{ env.SBOM_FILE }}
-          output-format: sarif
-          output-file: ${{ env.SARIF_REPORT }}
-          fail-build: false
-          severity-cutoff: 'high'
-
       - name: SCA via Anchore (table)
         uses: anchore/scan-action@v6
         with:
@@ -173,13 +161,6 @@ jobs:
           fail-build: false
           severity-cutoff: 'high'
 
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        with:
-          sarif_file: ${{ env.SARIF_REPORT }}
-          category: ${{matrix.service}}
-
       - name: Upload SBOM & SCA artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -188,7 +169,6 @@ jobs:
           path: |
             ${{ env.SBOM_FILE }}
             ${{ env.TABLE_REPORT }}
-            ${{ env.SARIF_REPORT }}
           retention-days: 5
   sonar-scan:
     name: Sonar Scan
