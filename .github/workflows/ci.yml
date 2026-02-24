@@ -114,7 +114,6 @@ jobs:
     name: SCA & SBOM - ${{ matrix.service }}
     runs-on: ubuntu-latest
     permissions:
-      security-events: write
       contents: read
     strategy:
       matrix:
