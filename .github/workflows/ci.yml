@@ -2,10 +2,10 @@ name: Microservices CI
 on:
   push:
     branches:
-      - chore/add-back-sonar-scan
+      - dev
   pull_request:
     branches:
-      - chore/add-back-sonar-scan
+      - dev
 
 permissions:
   contents: read
