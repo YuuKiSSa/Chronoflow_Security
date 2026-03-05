@@ -59,10 +59,11 @@ class AuthServiceImplTest {
                         .id(10L)
                         .username("alice")
                         .password("encoded")
+                        .salt("salt")
                         .status(CommonStatusEnum.ENABLE.getStatus())
                         .build();
         when(userService.getUserByUsername("alice")).thenReturn(user);
-        when(userService.isPasswordMatch("pwd", "encoded")).thenReturn(true);
+        when(userService.isPasswordMatch("pwd", "encoded", "salt")).thenReturn(true);
 
         UserDO result = service.authenticate("alice", "pwd");
 

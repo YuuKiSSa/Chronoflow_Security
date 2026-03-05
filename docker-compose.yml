@@ -28,7 +28,7 @@ services:
       - chronoflow-net
 
   nacos:
-    image: nacos/nacos-server:v2.3.2-slim
+    image: nacos/nacos-server:v2.4.3
     container_name: nacos
     environment:
       - PREFER_HOST_MODE=hostname

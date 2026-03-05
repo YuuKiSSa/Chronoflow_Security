@@ -29,9 +29,10 @@ public interface UserService {
      *
      * @param rawPassword Unencrypted password
      * @param encodedPassword Encrypted password
+     * @param salt Password salt
      * @return Match result
      */
-    boolean isPasswordMatch(String rawPassword, String encodedPassword);
+    boolean isPasswordMatch(String rawPassword, String encodedPassword, String salt);
 
     /**
      * Select user and his role by userId
