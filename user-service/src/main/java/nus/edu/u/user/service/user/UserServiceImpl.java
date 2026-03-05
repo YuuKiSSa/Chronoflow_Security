@@ -80,8 +80,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean isPasswordMatch(String rawPassword, String encodedPassword) {
-        return passwordEncoder.matches(rawPassword, encodedPassword);
+    public boolean isPasswordMatch(String rawPassword, String encodedPassword, String salt) {
+        return passwordEncoder.matches(rawPassword + salt, encodedPassword);
     }
 
     @Override

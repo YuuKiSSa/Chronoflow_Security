@@ -87,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
             throw exception(AUTH_LOGIN_BAD_CREDENTIALS);
         }
         // 2.Check password
-        if (!userService.isPasswordMatch(password, userDO.getPassword())) {
+        if (!userService.isPasswordMatch(password, userDO.getPassword(), userDO.getSalt())) {
             auditLogger.log(
                     SecurityEvent.LOGIN_FAILED_BAD_CREDENTIALS,
                     userDO.getId().toString(),

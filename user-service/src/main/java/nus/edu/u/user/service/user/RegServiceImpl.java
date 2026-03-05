@@ -3,6 +3,7 @@ package nus.edu.u.user.service.user;
 import static nus.edu.u.common.enums.ErrorCodeConstants.*;
 import static nus.edu.u.common.utils.exception.ServiceExceptionUtil.exception;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
@@ -114,7 +115,9 @@ public class RegServiceImpl implements RegService {
             throw exception(ACCOUNT_EXIST);
         }
         user.setUsername(regMemberReqVO.getUsername());
-        user.setPassword(passwordEncoder.encode(regMemberReqVO.getPassword()));
+        String salt = IdUtil.fastSimpleUUID();
+        user.setSalt(salt);
+        user.setPassword(passwordEncoder.encode(regMemberReqVO.getPassword() + salt));
         user.setPhone(regMemberReqVO.getPhone());
         user.setStatus(UserStatusEnum.ENABLE.getCode());
 
@@ -141,12 +144,15 @@ public class RegServiceImpl implements RegService {
             throw exception(REG_FAIL);
         }
         // Create and insert user
+        String salt = IdUtil.fastSimpleUUID();
         UserDO user =
                 UserDO.builder()
                         .username(regOrganizerReqVO.getUsername())
                         .email(regOrganizerReqVO.getUserEmail())
                         .phone(regOrganizerReqVO.getMobile())
-                        .password(passwordEncoder.encode(regOrganizerReqVO.getUserPassword()))
+                        .salt(salt)
+                        .password(
+                                passwordEncoder.encode(regOrganizerReqVO.getUserPassword() + salt))
                         .remark(ORGANIZER_REMARK)
                         .status(UserStatusEnum.ENABLE.getCode())
                         .build();
