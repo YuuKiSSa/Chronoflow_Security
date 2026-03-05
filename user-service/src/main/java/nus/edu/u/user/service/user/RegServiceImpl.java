@@ -151,7 +151,8 @@ public class RegServiceImpl implements RegService {
                         .email(regOrganizerReqVO.getUserEmail())
                         .phone(regOrganizerReqVO.getMobile())
                         .salt(salt)
-                        .password(passwordEncoder.encode(regOrganizerReqVO.getUserPassword() + salt))
+                        .password(
+                                passwordEncoder.encode(regOrganizerReqVO.getUserPassword() + salt))
                         .remark(ORGANIZER_REMARK)
                         .status(UserStatusEnum.ENABLE.getCode())
                         .build();
