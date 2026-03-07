@@ -1,6 +1,5 @@
 package nus.edu.u.file.domain.vo;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
@@ -23,16 +22,15 @@ public class FileUploadReqVO implements Serializable {
     @ValidFile(
             maxSizeMB = SecurityConstants.MAX_FILE_UPLOAD_SIZE_IN_MB,
             allowedTypes = {
-                    "image/jpeg",
-                    "image/png",
-                    "application/pdf",
-                    "text/plain",                                                                      // .txt
-                    "application/msword",                                                              // .doc
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",        // .docx
-                    "application/vnd.ms-excel",                                                        // .xls
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"               // .xlsx
+                "image/jpeg",
+                "image/png",
+                "application/pdf",
+                "text/plain", // .txt
+                "application/msword", // .doc
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+                "application/vnd.ms-excel", // .xls
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // .xlsx
             },
-            message = "File validation failed"
-    )
+            message = "File validation failed")
     private List<MultipartFile> files;
 }

@@ -33,5 +33,4 @@ public class SecurityConstants {
     public static final int ONE_TIME_TOKEN_EXPIRY_SECS = 60;
 
     public static final int MAX_FILE_UPLOAD_SIZE_IN_MB = 16;
-
 }

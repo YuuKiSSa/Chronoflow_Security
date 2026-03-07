@@ -1,19 +1,21 @@
 package nus.edu.u.file.validators;
+
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
 public class FileValidator implements ConstraintValidator<ValidFile, List<MultipartFile>> {
 
     private long maxSizeBytes;
     private String[] allowedTypes;
     private Tika tika;
+
     @Override
     public void initialize(ValidFile annotation) {
         this.maxSizeBytes = annotation.maxSizeMB() * 1024 * 1024;
@@ -35,15 +37,21 @@ public class FileValidator implements ConstraintValidator<ValidFile, List<Multip
             }
 
             if (file.getSize() > maxSizeBytes) {
-                buildViolation(ctx, String.format("File '%s' exceeds max size of %dMB",
-                        file.getOriginalFilename(), maxSizeBytes / (1024 * 1024)));
+                buildViolation(
+                        ctx,
+                        String.format(
+                                "File '%s' exceeds max size of %dMB",
+                                file.getOriginalFilename(), maxSizeBytes / (1024 * 1024)));
                 return false;
             }
 
             String contentType = file.getContentType();
             if (contentType == null || Arrays.stream(allowedTypes).noneMatch(contentType::equals)) {
-                buildViolation(ctx, String.format("File '%s' has disallowed content type: %s",
-                        file.getOriginalFilename(), contentType));
+                buildViolation(
+                        ctx,
+                        String.format(
+                                "File '%s' has disallowed content type: %s",
+                                file.getOriginalFilename(), contentType));
                 return false;
             }
             String detectedType;
@@ -52,18 +60,25 @@ public class FileValidator implements ConstraintValidator<ValidFile, List<Multip
                 metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, file.getOriginalFilename());
                 detectedType = tika.detect(file.getInputStream(), metadata);
             } catch (Exception e) {
-                buildViolation(ctx, "Could not read file: " + Objects.toString(file.getOriginalFilename(), ""));
+                buildViolation(
+                        ctx,
+                        "Could not read file: " + Objects.toString(file.getOriginalFilename(), ""));
                 return false;
             }
 
             if (detectedType == null) {
-                buildViolation(ctx, String.format("Unable to detect type for File '%s'",
-                        file.getOriginalFilename()));
+                buildViolation(
+                        ctx,
+                        String.format(
+                                "Unable to detect type for File '%s'", file.getOriginalFilename()));
                 return false;
             }
             if (Arrays.stream(allowedTypes).noneMatch(detectedType::equals)) {
-                buildViolation(ctx, String.format("File '%s' has disallowed detected type: %s",
-                        file.getOriginalFilename(), detectedType));
+                buildViolation(
+                        ctx,
+                        String.format(
+                                "File '%s' has disallowed detected type: %s",
+                                file.getOriginalFilename(), detectedType));
                 return false;
             }
         }

@@ -10,9 +10,12 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidFile {
     String message() default "Invalid file";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 
     long maxSizeMB() default 10;
+
     String[] allowedTypes() default {"image/jpeg", "image/png", "application/pdf"};
 }
