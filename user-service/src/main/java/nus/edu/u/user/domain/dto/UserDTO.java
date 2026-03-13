@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nus.edu.u.common.enums.CommonStatusEnum;
+import nus.edu.u.common.jackson.desensitize.Desensitize;
+import nus.edu.u.common.jackson.desensitize.DesensitizeType;
 
 /**
  * @author Lu Shuwen
@@ -24,12 +26,14 @@ public class UserDTO {
 
     private String username;
 
+    @Desensitize(type = DesensitizeType.PASSWORD)
     private String password;
 
     private String remark;
 
     private String email;
 
+    @Desensitize(type = DesensitizeType.PHONE)
     private String phone;
 
     /**
