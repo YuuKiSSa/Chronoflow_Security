@@ -184,6 +184,34 @@ CREATE TABLE IF NOT EXISTS sys_user_ott (
     CONSTRAINT fk_ott_user FOREIGN KEY (user_id) REFERENCES sys_user(id)
 );
 
+CREATE TABLE IF NOT EXISTS audit_log (
+                             `id`           BIGINT NOT NULL primary key auto_increment ,
+                             `trace_id`     VARCHAR(64),
+                             `user_id`      BIGINT,
+                             `user_ip`      VARCHAR(45),
+                             `user_agent`   VARCHAR(512),
+                             `module`       VARCHAR(50),
+                             `operation`    VARCHAR(100),
+                             `type`         TINYINT,
+                             `method`       VARCHAR(10),
+                             `request_url`  VARCHAR(255),
+                             `request_body` TEXT,
+                             `target_type`  VARCHAR(50),
+                             `target_id`    VARCHAR(64),
+                             `before_data`  TEXT,
+                             `after_data`   TEXT,
+                             `result_code`  INT,
+                             `result_msg`   VARCHAR(512),
+                             `duration`     INT,
+                             `extra`        TEXT,
+                             creator     varchar(100)                 null,
+                             create_time datetime                     null,
+                             updater     varchar(100) charset utf8mb3 null,
+                             update_time datetime                     null,
+                             deleted     tinyint(1) default 0         null,
+                             tenant_id   bigint                       null
+);
+
 # Permissions
 INSERT INTO user.sys_permission (id, name, permission_key, description, type, parent_id, status, creator, create_time, updater, update_time, deleted, tenant_id) VALUES (1971465366969307138, 'All permission', '*', null, 3, null, 0, null, null, null, null, 0, null);
 INSERT INTO user.sys_permission (id, name, permission_key, description, type, parent_id, status, creator, create_time, updater, update_time, deleted, tenant_id) VALUES (1971465366969307139, 'Create member', 'system:organizer:member:create', null, 3, null, 0, null, null, null, null, 0, null);
