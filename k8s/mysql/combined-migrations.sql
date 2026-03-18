@@ -344,3 +344,5 @@ CREATE TABLE IF NOT EXISTS sys_user_ott (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ott_user FOREIGN KEY (user_id) REFERENCES sys_user(id)
 );
+
+ALTER TABLE sys_user ADD COLUMN salt VARCHAR(64) NULL COMMENT 'Password salt' AFTER password;
