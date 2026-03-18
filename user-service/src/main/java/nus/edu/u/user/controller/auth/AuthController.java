@@ -49,6 +49,7 @@ public class AuthController {
             @RequestBody @Valid LoginReqVO reqVO,
             @CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
             HttpServletResponse response) {
+        log.info("HttpServletRequest request, Login request received with remember me: {}", reqVO.isRemember());
         reqVO.setRefreshToken(refreshToken);
         LoginRespVO loginRespVO = authService.login(reqVO);
         AbstractCookieFactory cookieFactory;
