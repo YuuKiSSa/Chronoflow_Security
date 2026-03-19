@@ -1,6 +1,11 @@
 server:
   port: 8080
 
+# Include OpenTelemetry trace/span IDs in log lines when present
+logging:
+  pattern:
+    console: "%d{dd-MM-yyyy HH:mm:ss.SSS} [traceId=%X{traceId:-} spanId=%X{spanId:-}] [%thread] %-5level %logger{36} - %msg%n"
+
 spring:
   application:
     name: gateway
@@ -26,6 +31,10 @@ spring:
           max-idle: 10
           # Minimum number of idle connections in the connection pool
           min-idle: 0
+
+  reactor:
+    # Ensure observability/tracing context (including MDC) flows through reactive operators
+    context-propagation: auto
 
   cloud:
     nacos:
@@ -194,3 +203,7 @@ management:
     export:
       prometheus:
         enabled: true
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0

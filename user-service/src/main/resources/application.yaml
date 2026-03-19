@@ -1,6 +1,11 @@
 server:
   port: 8081
 
+# Include OpenTelemetry trace/span IDs in log lines when present
+logging:
+  pattern:
+    console: "%d{dd-MM-yyyy HH:mm:ss.SSS} [traceId=%X{traceId:-} spanId=%X{spanId:-}] [%thread] %-5level %logger{36} - %msg%n"
+
 spring:
   application:
     name: user-service
@@ -211,6 +216,10 @@ management:
     export:
       prometheus:
         enabled: true
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
 
 chronoflow:
   security:

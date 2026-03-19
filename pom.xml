@@ -76,6 +76,10 @@
         <gatling.version>3.14.9</gatling.version>
         <logback.version>1.5.27</logback.version>
         <bouncycastle.version>1.78.1</bouncycastle.version>
+        <!-- OpenTelemetry / Micrometer tracing -->
+        <micrometer-tracing.version>1.3.5</micrometer-tracing.version>
+        <!-- OpenTelemetry / Micrometer tracing -->
+        <micrometer-tracing.version>1.3.5</micrometer-tracing.version>
 
         <!-- SonarQube -->
         <sonar.organization>yet-another-spaghetti-coder</sonar.organization>
@@ -84,7 +88,7 @@
     </properties>
 
     <dependencyManagement>
-        <dependencies>
+    <dependencies>
 
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -453,7 +457,20 @@
                 <version>${tomcat.version}</version>
             </dependency>
 
-        </dependencies>
+        <!-- Micrometer + OpenTelemetry tracing bridge for all services -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+            <version>${micrometer-tracing.version}</version>
+        </dependency>
+        <!-- OTLP exporter (optional back-end; logs-only tracing works even without this configured) -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+            <version>1.45.0</version>
+        </dependency>
+
+    </dependencies>
     </dependencyManagement>
 
     <build>

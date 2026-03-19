@@ -59,6 +59,13 @@ public class RequestAuditFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         HttpMethod method = request.getMethod();
 
+        // Log every incoming request at gateway level
+        log.info(
+                "Incoming request: method={} path={} query={}",
+                method != null ? method.name() : "UNKNOWN",
+                request.getURI().getPath(),
+                request.getURI().getQuery());
+
         // Only audit mutating requests to sensitive endpoints
         if (method == null || !MUTATING_METHODS.contains(method)) {
             return chain.filter(exchange);
