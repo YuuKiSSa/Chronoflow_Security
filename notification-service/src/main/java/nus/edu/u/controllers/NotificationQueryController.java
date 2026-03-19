@@ -24,7 +24,10 @@ public class NotificationQueryController {
         StpUtil.checkLogin();
         String currentUserId = String.valueOf(StpUtil.getLoginIdAsLong());
 
-        log.info("Fetching notification detail for notifId={} currentUserId={}", notifId, currentUserId);
+        log.info(
+                "Fetching notification detail for notifId={} currentUserId={}",
+                notifId,
+                currentUserId);
         return success(notificationQueryService.getDetail(notifId, currentUserId));
     }
 }

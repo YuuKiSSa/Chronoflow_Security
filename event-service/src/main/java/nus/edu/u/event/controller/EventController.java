@@ -44,7 +44,10 @@ public class EventController {
     public CommonResult<EventRespVO> create(@Valid @RequestBody EventCreateReqVO request) {
         Long organizerId = StpUtil.getLoginIdAsLong();
         request.setOrganizerId(organizerId);
-        log.info("Creating event for organizerId={} with title={}", organizerId, request.getEventName());
+        log.info(
+                "Creating event for organizerId={} with title={}",
+                organizerId,
+                request.getEventName());
         EventRespVO resp = eventApplicationService.createEvent(request);
         return success(resp);
     }

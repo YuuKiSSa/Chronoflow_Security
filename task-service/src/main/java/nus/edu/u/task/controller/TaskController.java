@@ -78,10 +78,7 @@ public class TaskController {
     @PostMapping("{eventId}")
     public CommonResult<TaskRespVO> create(
             @PathVariable("eventId") Long eventId, @Valid @ModelAttribute TaskCreateReqVO request) {
-        log.info(
-                "Creating task for eventId={} with title={}",
-                eventId,
-                request.getName());
+        log.info("Creating task for eventId={} with title={}", eventId, request.getName());
         TaskRespVO resp = taskApplicationService.createTask(eventId, request);
         return CommonResult.success(resp);
     }
