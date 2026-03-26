@@ -181,6 +181,7 @@ jobs:
   docker-push:
     name: Docker Push - ${{ matrix.service }}
     runs-on: ubuntu-latest
+    environment: dev
     needs: [detect-changes, build-and-test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && github.repository_owner == 'yet-another-spaghetti-coder'
     strategy:
