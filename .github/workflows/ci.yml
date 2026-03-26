@@ -47,6 +47,8 @@ jobs:
               - 'common/**'
               - 'shared-api/**'
               - 'pom.xml'
+            ci:
+              - '.github/workflows/**'
       - name: Set all services list
         id: set-services
         run: |
@@ -61,6 +63,12 @@ jobs:
           fi
           if echo "$CHANGED" | jq -e 'index("shared-modules")' >/dev/null; then
             echo "Shared module changed. Building all services."
+            ALL_SERVICES='${{ steps.set-services.outputs.all }}'
+            echo "services=$ALL_SERVICES" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if echo "$CHANGED" | jq -e 'index("ci")' >/dev/null; then
+            echo "CI workflow changed. Building all services."
             ALL_SERVICES='${{ steps.set-services.outputs.all }}'
             echo "services=$ALL_SERVICES" >> "$GITHUB_OUTPUT"
             exit 0
