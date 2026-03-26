@@ -211,11 +211,11 @@ jobs:
         run: |
           IMAGE_TAG=${{ github.sha }}
           LATEST_TAG=latest
-          FULL_IMAGE=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ matrix.service }}/${{ matrix.service }}:${{ env.IMAGE_TAG }}
-          FULL_IMAGE_LATEST=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ matrix.service }}/${{ matrix.service }}:${{ env.LATEST_TAG }}
-          docker build -t ${FULL_IMAGE} -t ${FULL_IMAGE_LATEST} ./${{ matrix.service }}
-          docker push ${FULL_IMAGE}
-          docker push ${FULL_IMAGE_LATEST}
+          FULL_IMAGE=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ matrix.service }}/${{ matrix.service }}:$IMAGE_TAG
+          FULL_IMAGE_LATEST=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ matrix.service }}/${{ matrix.service }}:$LATEST_TAG
+          docker build -t "$FULL_IMAGE" -t "$FULL_IMAGE_LATEST" ./${{ matrix.service }}
+          docker push "$FULL_IMAGE"
+          docker push "$FULL_IMAGE_LATEST"
 
   sonar-scan:
     name: Sonar Scan
