@@ -75,17 +75,13 @@ jobs:
           [ "${{ steps.filter.outputs.event-service }}" = "true" ] && SERVICES+=("event-service")
           [ "${{ steps.filter.outputs.attendee-service }}" = "true" ] && SERVICES+=("attendee-service")
           
-          # Output using heredoc to preserve exact JSON
+          # Output JSON - single line echo (no heredoc to avoid newline issues)
           if [ ${#SERVICES[@]} -eq 0 ]; then
             echo "No service-specific changes detected."
             echo "services=[]" >> "$GITHUB_OUTPUT"
           else
-            printf '%s\n' "${SERVICES[@]}" | jq -Rsc '[split("\n")[] | select(length > 0)]' > /tmp/services.json
-            {
-              echo "services<<EOF"
-              cat /tmp/services.json
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
+            SERVICES_JSON=$(printf '%s\n' "${SERVICES[@]}" | jq -Rsc '[split("\n")[] | select(length > 0)]')
+            echo "services=${SERVICES_JSON}" >> "$GITHUB_OUTPUT"
           fi
 
   build-and-test:
