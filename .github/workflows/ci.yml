@@ -80,8 +80,8 @@ jobs:
             echo "No service-specific changes detected."
             echo "services=[]" >> "$GITHUB_OUTPUT"
           else
-            JSON=$(printf '%s\n' "${SERVICES[@]}" | jq -Rsc 'split("\n") | map(select(length > 0))' | tr -d '\n')
-            echo "services=$JSON" >> "$GITHUB_OUTPUT"
+            printf '%s\n' "${SERVICES[@]}" | jq -Rsc 'split("\n") | map(select(length > 0))' > /tmp/services.json
+            echo "services=$(cat /tmp/services.json)" >> "$GITHUB_OUTPUT"
           fi
 
   build-and-test:
