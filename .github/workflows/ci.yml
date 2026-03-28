@@ -49,18 +49,42 @@ jobs:
               - 'pom.xml'
             ci:
               - '.github/workflows/**'
+
       - name: Set all services list
         id: set-services
         run: |
-          echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\", \"file-service\", \"event-service\", \"attendee-service\"]" >> $GITHUB_OUTPUT
+          echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\",\"file-service\",\"event-service\",\"attendee-service\"]" >> $GITHUB_OUTPUT
+
       - name: Determine affected services
         id: resolve
         run: |
-          CHANGED='${{ steps.filter.outputs.changes }}'
-          if [ "$CHANGED" = "[]" ] || [ -z "$CHANGED" ]; then
-            echo "services=[]" >> "$GITHUB_OUTPUT"
-            exit 0
+          SERVICES='[]'
+          
+          # Check if shared-modules or CI changed - if so, build all
+          if [ "${{ steps.filter.outputs.shared-modules }}" = "true" ] || [ "${{ steps.filter.outputs.ci }}" = "true" ]; then
+            echo "Shared module or CI workflow changed. Building all services."
+            SERVICES='${{ steps.set-services.outputs.all }}'
+          else
+            # Collect individual services that changed
+            SERVICES=$(echo '[' \
+              $([ "${{ steps.filter.outputs.user-service }}" = "true" ] && echo '"user-service",') \
+              $([ "${{ steps.filter.outputs.task-service }}" = "true" ] && echo '"task-service",') \
+              $([ "${{ steps.filter.outputs.notification-service }}" = "true" ] && echo '"notification-service",') \
+              $([ "${{ steps.filter.outputs.gateway }}" = "true" ] && echo '"gateway",') \
+              $([ "${{ steps.filter.outputs.file-service }}" = "true" ] && echo '"file-service",') \
+              $([ "${{ steps.filter.outputs.event-service }}" = "true" ] && echo '"event-service",') \
+              $([ "${{ steps.filter.outputs.attendee-service }}" = "true" ] && echo '"attendee-service",') \
+            | sed 's/,$//' | tr -d '\n')
+            SERVICES="${SERVICES}]"
+            
+            # Handle empty array case
+            if [ "$SERVICES" = "[]" ] || [ "$SERVICES" = "[,]" ]; then
+              echo "No service-specific changes detected."
+              SERVICES='[]'
+            fi
           fi
+          
+          echo "services=$SERVICES" >> "$GITHUB_OUTPUT"
           if echo "$CHANGED" | jq -e 'index("shared-modules")' >/dev/null; then
             echo "Shared module changed. Building all services."
             ALL_SERVICES='${{ steps.set-services.outputs.all }}'
