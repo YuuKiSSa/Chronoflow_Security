@@ -65,7 +65,7 @@ jobs:
             exit 0
           fi
           
-          # Build JSON array of changed services
+          # Build JSON array of changed services using jq for proper escaping
           SERVICES=()
           [ "${{ steps.filter.outputs.user-service }}" = "true" ] && SERVICES+=("user-service")
           [ "${{ steps.filter.outputs.task-service }}" = "true" ] && SERVICES+=("task-service")
@@ -75,21 +75,12 @@ jobs:
           [ "${{ steps.filter.outputs.event-service }}" = "true" ] && SERVICES+=("event-service")
           [ "${{ steps.filter.outputs.attendee-service }}" = "true" ] && SERVICES+=("attendee-service")
           
-          # Convert bash array to JSON array
+          # Convert bash array to JSON array using jq
           if [ ${#SERVICES[@]} -eq 0 ]; then
             echo "No service-specific changes detected."
             echo "services=[]" >> "$GITHUB_OUTPUT"
           else
-            # Build JSON array properly
-            JSON='['
-            for i in "${!SERVICES[@]}"; do
-              if [ $i -gt 0 ]; then
-                JSON="$JSON,"
-              fi
-              JSON="$JSON\"${SERVICES[$i]}\""
-            done
-            JSON="$JSON]"
-            echo "services=$JSON" >> "$GITHUB_OUTPUT"
+            printf '%s\n' "${SERVICES[@]}" | jq -Rsc 'split("\n") | map(select(length > 0))' | xargs -I {} echo "services={}" >> "$GITHUB_OUTPUT"
           fi
 
   build-and-test:
