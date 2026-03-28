@@ -81,7 +81,11 @@ jobs:
             echo "services=[]" >> "$GITHUB_OUTPUT"
           else
             printf '%s\n' "${SERVICES[@]}" | jq -Rsc 'split("\n") | map(select(length > 0))' > /tmp/services.json
-            echo "services=$(cat /tmp/services.json)" >> "$GITHUB_OUTPUT"
+            {
+              echo "services<<EOF"
+              cat /tmp/services.json
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           fi
 
   build-and-test:
