@@ -46,31 +46,44 @@ gcloud container clusters get-credentials chronoflow-cluster --region=asia-south
 
 Your manifests expect these to exist **before** deploying apps.
 
-### 3.1 MySQL for Nacos
+### 3.1 MySQL (GCP-hosted)
 
-Nacos uses MySQL. Your `k8s/nacos/deployment.yaml` reads from ConfigMap `nacos-cm` and Secret `nacos-mysql`.
+**Production uses MySQL on GCP** (for example [Cloud SQL for MySQL](https://cloud.google.com/sql/docs/mysql)). Microservices and Nacos read connection details from Kubernetes; nothing in this repo provisions Cloud SQL for you.
 
-- **Option A – Cloud SQL:** Create a Cloud SQL MySQL instance, note private IP. Create a database and user for Nacos. Edit `k8s/nacos/deployment.yaml` ConfigMap `nacos-cm` with that host/user, and create the `nacos-mysql` secret with the password.
-- **Option B – MySQL in cluster (recommended for getting started):** Use the manifests in `**k8s/mysql/`**. They provide MySQL + PVC + secrets.
-  1. Edit `k8s/mysql/secret.yaml` and set strong values for `root-password` and `nacos-password` (use the same value for the `nacos-mysql` secret).
-  2. Apply `k8s/mysql/` (secret, pvc, deployment, service), then Nacos, then `k8s/mysql/nacos-cm-incluster.yaml` and restart Nacos.
+- **Nacos:** `k8s/nacos/deployment.yaml` uses ConfigMap `nacos-cm` and Secret `nacos-mysql`. Point `MYSQL_SERVICE_*` at your Cloud SQL instance (host, port, user, database name `nacos`) and put the MySQL password in the `nacos-mysql` secret. Ensure GKE can reach the instance (private IP + VPC peering or [Cloud SQL Auth Proxy](https://cloud.google.com/sql/docs/mysql/connect-kubernetes-engine) as you prefer).
+- **Application databases:** The `database` Kubernetes Secret (keys such as `prod-master-db-host`, `prod-master-db-password`, …) is what deployments expect. **External Secrets** syncs those values from Google Secret Manager using `k8s/external-secrets/external-secret-database.yaml` and Terraform-managed secrets `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` (see `tf-secrets/`).
+- **Schema:** Run `k8s/mysql/combined-init.sql` and `k8s/mysql/combined-migrations.sql` against Cloud SQL using `mysql` from your workstation, a CI job, or a short-lived Job in the cluster—not `kubectl exec` into an in-cluster MySQL pod (unless you use the optional in-cluster path below).
 
-### 3.2 GCP / app secrets (from `.env`)
+**Optional – MySQL inside the cluster (local / legacy):** The manifests under `k8s/mysql/` can still run MySQL as a Deployment for experimentation. Edit `k8s/mysql/secret.yaml`, apply `k8s/mysql/`, then use `k8s/mysql/nacos-cm-incluster.yaml` for Nacos and the `kubectl exec … mysql` commands in §4.B if you rely on that pod.
 
-Fill the env vars in `.env` and map them into `k8s/secrets.yaml`:
+### 3.2 App secrets (Google Secret Manager + External Secrets)
 
+**Recommended on GKE:** This repo assumes **[External Secrets Operator](https://external-secrets.io/) is already installed** on the cluster (for example in the `external-secrets` namespace). Create secrets in Google Secret Manager (see `tf-secrets/`), wire **GCP Workload Identity** for the Kubernetes SA used by the ClusterSecretStore (`eso-gcp-sm` in `k8s/external-secrets/gcp-sm-auth-serviceaccount.yaml`), then apply `k8s/external-secrets/` (ClusterSecretStore + ExternalSecrets). That populates Kubernetes Secrets `pub-sub`, `file`, `firebase`, `aws`, and `database` without checking values into git. For a new cluster without ESO, install the operator first (Helm chart in the upstream docs), then continue here.
 
-| Env variable                                     | → Secret                | Key                                  | Used by                                                                                           |
-| ------------------------------------------------ | ----------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `PUB_SUB_SERVICE_ACCOUNT_JSON`                   | `pub-sub`               | `pub-sub-service-account`            | user, event, task, attendee, notification, wsgateway (must be **base64-encoded** JSON; see below) |
-| `GCP_SERVICE_ACCOUNT_JSON`                       | `file`                  | `file-service-account`               | file-service, notification-service                                                                |
-| `FIREBASE_SERVICE_ACCOUNT_JSON`                  | `firebase`              | `account-json`                       | notification-service, wsgateway                                                                   |
-| `MOBILE_CLIENT_ID`                               | `firebase`              | `mobile-client-id`                   | user-service (validates JWTs from mobile client)                                                  |
-| `AWS_REGION`, `AWS_ACCESS_KEY`, `AWS_SECRET_KEY` | `aws`                   | `region`, `access-key`, `secret-key` | notification-service                                                                              |
-| `GCP_PROJECT_ID`                                 | ConfigMap `noti-config` | `gcp.project.id`                     | several services                                                                                  |
+```bash
+kubectl apply -f k8s/namespace.yaml
+export GCP_PROJECT_ID=YOUR_GCP_PROJECT_ID
+export ESO_GCP_SERVICE_ACCOUNT=eso-gcp-sm@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+./k8s/external-secrets/apply.sh
+```
 
+Google Secret Manager secret ids (Terraform defaults in `tf-secrets/`) map to Kubernetes Secrets as follows. **Pub/Sub and GCP file credentials** must be **base64-encoded** JSON where Spring expects `encoded-key`.
 
-### 3.3 ConfigMap `noti-config`
+| GSM secret id                     | K8s `Secret` | Key(s)                               | Used by                                                                                           |
+| --------------------------------- | ------------ | ------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `PUB_SUB_SERVICE_ACCOUNT_JSON`    | `pub-sub`    | `pub-sub-service-account`            | user, event, task, attendee, notification, wsgateway                                            |
+| `GCP_SERVICE_ACCOUNT_JSON`        | `file`       | `file-service-account`               | file-service, notification-service                                                                |
+| `FIREBASE_SERVICE_ACCOUNT_JSON`   | `firebase`   | `account-json`                       | notification-service, wsgateway                                                                   |
+| `MOBILE_CLIENT_ID`                | `firebase`   | `mobile-client-id`                   | user-service                                                                                      |
+| `AWS_ACCESS_KEY`, `AWS_SECRET_KEY` | `aws`        | `access-key`, `secret-key`           | notification-service (`region` is set in `k8s/external-secrets/external-secret-aws.yaml`)         |
+| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` | `database` | `prod-master-db-*`, `prod-slave-db-*` | app services; Nacos uses `prod-master-db-*` when configured                                       |
+| (not GSM)                         | ConfigMap `noti-config` | `gcp.project.id`            | several services — edit `k8s/notification-service/config.yaml`                                    |
+
+### 3.3 MongoDB (GCP-hosted)
+
+**Production uses MongoDB outside the cluster** (for example MongoDB Atlas, or a GCP-hosted compatible endpoint such as Firestore with the MongoDB-compatible API). **wsgateway** reads **`MONGODB_URI`** in `k8s/wsgateway/deployment.yaml`; set that to your managed instance connection string. You do **not** need to apply `k8s/mongodb/` unless you intentionally run MongoDB as pods inside the cluster.
+
+### 3.4 ConfigMap `noti-config`
 
 Edit `k8s/notification-service/config.yaml` and set `gcp.project.id` to your project (e.g. `chronoflow-noti-service`) before applying.
 
@@ -78,32 +91,20 @@ Edit `k8s/notification-service/config.yaml` and set `gcp.project.id` to your pro
 
 ## 4. Apply manifests in order
 
-From the repo root (so paths below are correct). The sequence below mirrors the exact commands that have been tested end‑to‑end:
+From the repo root (so paths below are correct).
+
+### 4.A Recommended: GCP MySQL + GCP / external MongoDB
+
+Skip in-cluster `k8s/mysql/` and `k8s/mongodb/` when databases are hosted on GCP. After Cloud SQL (and Nacos/MySQL wiring), External Secrets, `MONGODB_URI` on wsgateway, and schema migrations are done:
 
 ```bash
-# 1) Namespace
 kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/secrets.yaml
-# 2) Database (Option B only): MySQL; set passwords in k8s/database/secret.yaml first
-kubectl apply -f k8s/mysql/
+# External Secrets: ./k8s/external-secrets/apply.sh (see §3.2)
 
-# 2a) Initialize and migrate MySQL schema (from local SQL files)
-kubectl exec -n chronoflow deployment/mysql -i -- \
-  mysql -uroot -proot < k8s/database/combined-init.sql
-kubectl exec -n chronoflow deployment/mysql -i -- \
-  mysql -uroot -proot < k8s/database/combined-migrations.sql
-
-# 3) Remaining platform services
 kubectl apply -f k8s/nacos/
 kubectl apply -f k8s/redis/
 
-# 4) MongoDB (for wsgateway); apply PVC first, then deployment and service
-kubectl apply -f k8s/mongodb/pvc.yaml
-kubectl apply -f k8s/mongodb/deployment.yaml
-kubectl apply -f k8s/mongodb/service.yaml
-kubectl wait --for=condition=ready pod -l app=mongodb -n chronoflow --timeout=120s
-
-# 5) Gateways and backend services
+# Gateways and backend services
 kubectl apply -f k8s/gateway/
 kubectl apply -f k8s/user-service/
 kubectl apply -f k8s/event-service/
@@ -111,6 +112,32 @@ kubectl apply -f k8s/task-service/
 kubectl apply -f k8s/attendee-service/
 kubectl apply -f k8s/wsgateway/
 kubectl apply -f k8s/notification-service/
+```
+
+Apply any other folders you use (`k8s/file-service/`, monitoring, HPA, etc.) in dependency order.
+
+### 4.B Optional: in-cluster MySQL and MongoDB (dev / legacy)
+
+Only if you run databases as pods in `chronoflow`:
+
+```bash
+# MySQL: set passwords in k8s/mysql/secret.yaml first
+kubectl apply -f k8s/mysql/
+
+kubectl exec -n chronoflow deployment/mysql -i -- \
+  mysql -uroot -proot < k8s/mysql/combined-init.sql
+kubectl exec -n chronoflow deployment/mysql -i -- \
+  mysql -uroot -proot < k8s/mysql/combined-migrations.sql
+
+kubectl apply -f k8s/nacos/
+kubectl apply -f k8s/redis/
+
+kubectl apply -f k8s/mongodb/pvc.yaml
+kubectl apply -f k8s/mongodb/deployment.yaml
+kubectl apply -f k8s/mongodb/service.yaml
+kubectl wait --for=condition=ready pod -l app=mongodb -n chronoflow --timeout=120s
+
+# Then gateways and services as in §4.A
 ```
 
 ---
@@ -156,12 +183,12 @@ kubectl get svc gateway -n chronoflow   # wait for EXTERNAL-IP
 
 - GCP project set; `gcloud` and `kubectl` installed
 - GKE cluster created and `kubectl` configured
-- MySQL for Nacos: Option A (Cloud SQL) or Option B (`k8s/mysql/` applied; `nacos-cm` and `nacos-mysql` set)
-- MongoDB: `k8s/mongodb/` applied (PVC, deployment, service) if using wsgateway
-- Secrets created: `pub-sub`, `file`, `firebase`, `aws` (as needed; see 3.2 to create from `.env`)
+- **MySQL on GCP:** Cloud SQL (or equivalent) reachable from GKE; Nacos `nacos-cm` + `nacos-mysql` aligned; app DB credentials in Secret `database` (External Secrets + GSM or manual); schema migrations applied to Cloud SQL
+- **MongoDB on GCP (or managed outside cluster):** `MONGODB_URI` set on wsgateway; skip `k8s/mongodb/` unless running Mongo in-cluster
+- **External Secrets Operator** installed on the cluster (prerequisite for the GSM flow)
+- **App secrets:** GSM (`tf-secrets/`) + `k8s/external-secrets/apply.sh` after Workload Identity is wired for `eso-gcp-sm`
 - `k8s/namespace.yaml` applied
 - `k8s/nacos/deployment.yaml` applied; Nacos pods running
 - `k8s/notification-service/config.yaml` applied
-- All other `k8s/`* manifests applied
+- All other `k8s/`* manifests you need applied
 - Gateway (or Ingress) exposed if you need external access
-

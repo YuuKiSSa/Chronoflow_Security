@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: file-service
   namespace: chronoflow
+  # secretKeyRef Secrets (database, file) are synced from GCP SM by ExternalSecrets in k8s/external-secrets/.
   labels:
     app: file-service
     version: v1
@@ -50,27 +51,45 @@ spec:
             - name: NACOS_PASSWORD
               value: "nacos"
             - name: PROD_MASTER_DB_HOST
-              value: "mysql.chronoflow.svc.cluster.local"
+              valueFrom:
+                secretKeyRef:
+                  name: database
+                  key: prod-master-db-host
             - name: PROD_MASTER_DB_PORT
-              value: "3306"
+              valueFrom:
+                secretKeyRef:
+                  name: database
+                  key: prod-master-db-port
             - name: PROD_MASTER_DB_USER
-              value: "root"
+              valueFrom:
+                secretKeyRef:
+                  name: database
+                  key: prod-master-db-user
             - name: PROD_MASTER_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql
-                  key: root-password
+                  name: database
+                  key: prod-master-db-password
             - name: PROD_SLAVE_DB_HOST
-              value: "mysql.chronoflow.svc.cluster.local"
+              valueFrom:
+                secretKeyRef:
+                  name: database
+                  key: prod-slave-db-host
             - name: PROD_SLAVE_DB_PORT
-              value: "3306"
+              valueFrom:
+                secretKeyRef:
+                  name: database
+                  key: prod-slave-db-port
             - name: PROD_SLAVE_DB_USER
-              value: "root"
+              valueFrom:
+                secretKeyRef:
+                  name: database
+                  key: prod-slave-db-user
             - name: PROD_SLAVE_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql
-                  key: root-password
+                  name: database
+                  key: prod-slave-db-password
             - name: PROD_REDIS_HOST
               value: "redis.chronoflow.svc.cluster.local"
             - name: PROD_REDIS_PORT
