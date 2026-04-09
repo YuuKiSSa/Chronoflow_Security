@@ -50,6 +50,7 @@ kind: StatefulSet
 metadata:
   name: nacos
   namespace: chronoflow
+  # secretKeyRef Secret database is synced from GCP SM by k8s/external-secrets/external-secret-database.yaml
 spec:
   serviceName: nacos-headless
   replicas: 1  # Use 1 for dev; set to 2+ and MODE=cluster for HA
@@ -80,31 +81,28 @@ spec:
               value: "standalone"
             - name: MYSQL_SERVICE_HOST
               valueFrom:
-                configMapKeyRef:
-                  name: nacos-cm
-                  key: mysql.host
+                secretKeyRef:
+                  name: database
+                  key: prod-master-db-host
             - name: MYSQL_SERVICE_DB_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: nacos-cm
-                  key: mysql.db.name
+              value: "nacos"
             - name: MYSQL_SERVICE_PORT
               valueFrom:
-                configMapKeyRef:
-                  name: nacos-cm
-                  key: mysql.port
+                secretKeyRef:
+                  name: database
+                  key: prod-master-db-port
             - name: MYSQL_SERVICE_USER
               valueFrom:
-                configMapKeyRef:
-                  name: nacos-cm
-                  key: mysql.user
+                secretKeyRef:
+                  name: database
+                  key: prod-master-db-user
             - name: MYSQL_SERVICE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: nacos-mysql
-                  key: password
+                  name: database
+                  key: prod-master-db-password
             - name: MYSQL_SERVICE_DB_PARAM
-              value: "characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true"
+              value: "characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=true&allowPublicKeyRetrieval=true"
             - name: NACOS_SERVER_PORT
               value: "8848"
             - name: NACOS_APPLICATION_PORT
