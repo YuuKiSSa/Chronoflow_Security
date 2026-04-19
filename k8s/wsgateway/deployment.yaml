@@ -52,7 +52,10 @@ spec:
             - name: NACOS_PASSWORD
               value: "nacos"
             - name: MONGODB_URI
-              value: "mongodb://wsgateway:sjJq8TbW8gfiVWhkPw3h5_Jg0OmnJFsf2BhdPLYKBKRtWGxq@0f6f8c88-b3d5-4125-8d6c-167b7dcbff6b.asia-southeast1.firestore.goog:443/chronoflow-firestore?loadBalanced=true&tls=true&authMechanism=SCRAM-SHA-256&retryWrites=false"
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb
+                  key: uri
             - name: PUB_SUB_SERVICE_ACCOUNT_JSON
               valueFrom:
                 secretKeyRef:
