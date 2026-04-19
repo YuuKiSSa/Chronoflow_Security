@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: notification-service
   namespace: chronoflow
-  # secretKeyRef Secrets (database, file, pub-sub, firebase, aws) are synced from GCP SM by ExternalSecrets in k8s/external-secrets/.
+  # secretKeyRef Secrets (database, file, pub-sub, firebase, aws, redis-auth) are synced from GCP SM by ExternalSecrets in k8s/external-secrets/.
   labels:
     app: notification-service
     version: v1
@@ -94,6 +94,17 @@ spec:
               value: "10.122.0.3"
             - name: PROD_REDIS_PORT
               value: "6379"
+            - name: PROD_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
+            # Spring Boot binds this directly to spring.data.redis.password (high precedence vs Nacos YAML).
+            - name: SPRING_DATA_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
             - name: GCP_SERVICE_ACCOUNT_JSON
               valueFrom:
                 secretKeyRef:
