@@ -12,8 +12,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: task-service
@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: task-service
-          image: shchow/task-service:latest
+          image: asia-southeast1-docker.pkg.dev/chronoflow-1/task-service/task-service:latest
           imagePullPolicy: Always
           ports:
             - name: http

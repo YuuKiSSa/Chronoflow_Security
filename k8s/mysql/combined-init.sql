@@ -732,4 +732,3 @@ INSERT INTO user.sys_permission (id, name, permission_key, description, type, pa
 INSERT INTO user.sys_permission (id, name, permission_key, description, type, parent_id, status, creator, create_time, updater, update_time, deleted, tenant_id) VALUES (1972530991993016322, 'Query task', 'system:event:task:query', '', 3, null, 0, '1', '2025-09-29 13:16:51', '1', '2025-09-29 13:16:51', 0, null);
 INSERT INTO user.sys_permission (id, name, permission_key, description, type, parent_id, status, creator, create_time, updater, update_time, deleted, tenant_id) VALUES (1972531040659525634, 'Assign task', 'system:event:task:assign', '', 3, null, 0, '1', '2025-09-29 13:17:03', '1', '2025-09-29 13:17:03', 0, null);
 
-
