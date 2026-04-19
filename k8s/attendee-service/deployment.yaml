@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: attendee-service
   namespace: chronoflow
-  # secretKeyRef Secrets (database, pub-sub) are synced from GCP SM by ExternalSecrets in k8s/external-secrets/.
+  # secretKeyRef Secrets (database, pub-sub, redis-auth) are synced from GCP SM by ExternalSecrets in k8s/external-secrets/.
   labels:
     app: attendee-service
     version: v1
@@ -91,9 +91,21 @@ spec:
                   name: database
                   key: prod-slave-db-password
             - name: PROD_REDIS_HOST
-              value: "redis.chronoflow.svc.cluster.local"
+              value: 10.122.0.3
             - name: PROD_REDIS_PORT
               value: "6379"
+            - name: PROD_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
+            # Spring Boot binds this directly to spring.data.redis.password (high precedence vs Nacos YAML).
+            # Use this so Redisson/Lock4j still AUTH when Nacos overrides spring.data.redis without a password.
+            - name: SPRING_DATA_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
             - name: PUB_SUB_SERVICE_ACCOUNT_JSON
               valueFrom:
                 secretKeyRef:

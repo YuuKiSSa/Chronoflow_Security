@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: gateway
   namespace: chronoflow
+  # secretKeyRef redis-auth is synced from GCP SM by k8s/external-secrets/external-secret-redis.yaml
   labels:
     app: gateway
     version: v1
@@ -50,9 +51,20 @@ spec:
             - name: NACOS_PASSWORD
               value: "nacos"
             - name: PROD_REDIS_HOST
-              value: "redis.chronoflow.svc.cluster.local"
+              value: "10.122.0.3"
             - name: PROD_REDIS_PORT
               value: "6379"
+            - name: PROD_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
+            # Spring Boot binds this directly to spring.data.redis.password (high precedence vs Nacos YAML).
+            - name: SPRING_DATA_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
           resources:
             requests:
               memory: "512Mi"
