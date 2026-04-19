@@ -8,12 +8,12 @@ metadata:
     app: attendee-service
     version: v1
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: attendee-service
@@ -29,7 +29,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: attendee-service
-          image: shchow/attendee-service:latest
+          image: asia-southeast1-docker.pkg.dev/chronoflow-1/attendee-service/attendee-service:latest
           imagePullPolicy: Always
           ports:
             - name: http
