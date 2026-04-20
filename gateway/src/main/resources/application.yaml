@@ -152,6 +152,7 @@ gateway:
     - /v3/**
     - /*/v3/**
     - /actuator/health
+    - /internal/diagnostics/**
 
 ############## Sa-Token config (文档: https://sa-token.cc) ##############
 sa-token:
