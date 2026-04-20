@@ -47,14 +47,7 @@ public class WebSocketConfig {
 
         // CORS for WebSocket handshake (origin check)
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(
-                List.of(
-                        "http://localhost:5173",
-                        "http://127.0.0.1:5173",
-                        "http://localhost:5174",
-                        "http://localhost:8080",
-                        "https://api.chronoflow.site",
-                        "https://chronoflow.site"));
+        cors.setAllowedOrigins(List.of("*"));
         cors.setAllowCredentials(true);
         cors.setAllowedHeaders(List.of("*"));
         cors.setAllowedMethods(List.of("GET")); // WS handshake is GET
