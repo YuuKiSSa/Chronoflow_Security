@@ -42,6 +42,8 @@ jobs:
               - 'event-service/**'
             attendee-service:
               - 'attendee-service/**'
+            wsgateway:
+              - 'wsgateway/**'
             shared-modules:
               - 'framework/**'
               - 'common/**'
@@ -53,7 +55,7 @@ jobs:
       - name: Set all services list
         id: set-services
         run: |
-          echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\",\"file-service\",\"event-service\",\"attendee-service\"]" >> $GITHUB_OUTPUT
+          echo "all=[\"user-service\",\"task-service\",\"notification-service\",\"gateway\",\"file-service\",\"event-service\",\"attendee-service\",\"wsgateway\"]" >> $GITHUB_OUTPUT
 
       - name: Determine affected services
         id: resolve
@@ -72,6 +74,7 @@ jobs:
           [ "${{ steps.filter.outputs.file-service }}"           = "true" ] && SERVICES+=("file-service")
           [ "${{ steps.filter.outputs.event-service }}"          = "true" ] && SERVICES+=("event-service")
           [ "${{ steps.filter.outputs.attendee-service }}"       = "true" ] && SERVICES+=("attendee-service")
+          [ "${{ steps.filter.outputs.wsgateway }}"              = "true" ] && SERVICES+=("wsgateway")
       
           if [ ${#SERVICES[@]} -eq 0 ]; then
             echo "No service-specific changes detected."
