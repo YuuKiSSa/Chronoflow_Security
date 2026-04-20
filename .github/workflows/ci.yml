@@ -58,24 +58,21 @@ jobs:
       - name: Determine affected services
         id: resolve
         run: |
-          # Check if shared-modules or CI changed - if so, build all
           if [ "${{ steps.filter.outputs.shared-modules }}" = "true" ] || [ "${{ steps.filter.outputs.ci }}" = "true" ]; then
             echo "Shared module or CI workflow changed. Building all services."
-            echo "services=${{ steps.set-services.outputs.all }}" >> "$GITHUB_OUTPUT"
+            echo 'services=${{ steps.set-services.outputs.all }}' >> "$GITHUB_OUTPUT"  # ← single quotes
             exit 0
           fi
-          
-          # Build JSON array using jq for proper escaping
+      
           SERVICES=()
-          [ "${{ steps.filter.outputs.user-service }}" = "true" ] && SERVICES+=("user-service")
-          [ "${{ steps.filter.outputs.task-service }}" = "true" ] && SERVICES+=("task-service")
-          [ "${{ steps.filter.outputs.notification-service }}" = "true" ] && SERVICES+=("notification-service")
-          [ "${{ steps.filter.outputs.gateway }}" = "true" ] && SERVICES+=("gateway")
-          [ "${{ steps.filter.outputs.file-service }}" = "true" ] && SERVICES+=("file-service")
-          [ "${{ steps.filter.outputs.event-service }}" = "true" ] && SERVICES+=("event-service")
-          [ "${{ steps.filter.outputs.attendee-service }}" = "true" ] && SERVICES+=("attendee-service")
-          
-          # Output JSON - single line echo (no heredoc to avoid newline issues)
+          [ "${{ steps.filter.outputs.user-service }}"           = "true" ] && SERVICES+=("user-service")
+          [ "${{ steps.filter.outputs.task-service }}"           = "true" ] && SERVICES+=("task-service")
+          [ "${{ steps.filter.outputs.notification-service }}"   = "true" ] && SERVICES+=("notification-service")
+          [ "${{ steps.filter.outputs.gateway }}"                = "true" ] && SERVICES+=("gateway")
+          [ "${{ steps.filter.outputs.file-service }}"           = "true" ] && SERVICES+=("file-service")
+          [ "${{ steps.filter.outputs.event-service }}"          = "true" ] && SERVICES+=("event-service")
+          [ "${{ steps.filter.outputs.attendee-service }}"       = "true" ] && SERVICES+=("attendee-service")
+      
           if [ ${#SERVICES[@]} -eq 0 ]; then
             echo "No service-specific changes detected."
             echo "services=[]" >> "$GITHUB_OUTPUT"
