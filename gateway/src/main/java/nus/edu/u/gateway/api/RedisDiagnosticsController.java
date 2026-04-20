@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +24,7 @@ import reactor.core.publisher.Mono;
 public class RedisDiagnosticsController {
 
     private final ReactiveStringRedisTemplate redisTemplate;
+    private final ObjectProvider<StringRedisTemplate> stringRedisTemplateProvider;
 
     @GetMapping("/redis")
     public Mono<Map<String, Object>> redis() {
@@ -61,6 +64,35 @@ public class RedisDiagnosticsController {
 
         log.info("Sa-Token diagnostics: {}", result);
         return Mono.just(result);
+    }
+
+    @GetMapping("/blocking-redis")
+    public Mono<Map<String, Object>> blockingRedis() {
+        return Mono.fromCallable(
+                        () -> {
+                            StringRedisTemplate template =
+                                    stringRedisTemplateProvider.getIfAvailable();
+                            if (template == null) {
+                                Map<String, Object> result = new LinkedHashMap<>();
+                                result.put("reachable", false);
+                                result.put("error", "StringRedisTemplate bean not available");
+                                return result;
+                            }
+
+                            String key = "gateway:diag:blocking-redis:" + UUID.randomUUID();
+                            String value = Instant.now().toString();
+                            template.opsForValue().set(key, value, Duration.ofSeconds(10));
+                            String read = template.opsForValue().get(key);
+                            Boolean exists = template.hasKey(key);
+
+                            Map<String, Object> result = new LinkedHashMap<>();
+                            result.put("reachable", true);
+                            result.put("written", exists);
+                            result.put("key", key);
+                            result.put("value", read);
+                            return result;
+                        })
+                .doOnSuccess(result -> log.info("Blocking Redis diagnostics: {}", result));
     }
 
     private Map<String, Object> buildResult(String key, Boolean written, String value) {
