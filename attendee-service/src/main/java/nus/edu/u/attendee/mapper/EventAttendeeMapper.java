@@ -21,7 +21,7 @@ import org.apache.ibatis.annotations.Select;
 public interface EventAttendeeMapper extends BaseMapper<EventAttendeeDO> {
 
     @Select(
-            """
+"""
   SELECT
     COALESCE(SUM(CASE WHEN check_in_status = 1 THEN 1 ELSE 0 END), 0) AS checkedIn,
     COALESCE(SUM(CASE WHEN check_in_status = 0 THEN 1 ELSE 0 END), 0) AS nonCheckedIn
