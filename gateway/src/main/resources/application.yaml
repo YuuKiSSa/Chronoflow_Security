@@ -137,6 +137,7 @@ knife4j:
 gateway:
   white-list:
     - /actuator/health/**
+    - /actuator/prometheus
     - /users/auth/exchangeToken
     - /users/auth/validateOTT
     - /users/auth/login
