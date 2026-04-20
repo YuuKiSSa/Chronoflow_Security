@@ -36,11 +36,8 @@ public class RedisDiagnosticsController {
                                 redisTemplate
                                         .opsForValue()
                                         .get(key)
-                                        .map(
-                                                read ->
-                                                        buildResult(key, written, read))
-                                        .defaultIfEmpty(
-                                                buildResult(key, written, null)))
+                                        .map(read -> buildResult(key, written, read))
+                                        .defaultIfEmpty(buildResult(key, written, null)))
                 .doOnSuccess(result -> log.info("Redis diagnostics succeeded: {}", result));
     }
 
