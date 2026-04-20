@@ -47,10 +47,9 @@ public class RedisDiagnosticsController {
     @GetMapping("/satoken")
     public Mono<Map<String, Object>> saToken() {
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("reachable", true);
-        result.put("token", StpUtil.getTokenValue());
-
         try {
+            result.put("reachable", true);
+            result.put("token", StpUtil.getTokenValue());
             StpUtil.checkLogin();
             result.put("loggedIn", true);
             result.put("loginId", StpUtil.getLoginIdDefaultNull());
