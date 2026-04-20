@@ -92,7 +92,16 @@ public class RedisDiagnosticsController {
                             result.put("value", read);
                             return result;
                         })
-                .doOnSuccess(result -> log.info("Blocking Redis diagnostics: {}", result));
+                .doOnSuccess(result -> log.info("Blocking Redis diagnostics: {}", result))
+                .onErrorResume(
+                        ex -> {
+                            log.warn("Blocking Redis diagnostics failed: {}", ex.toString(), ex);
+                            Map<String, Object> result = new LinkedHashMap<>();
+                            result.put("reachable", false);
+                            result.put("error", ex.getClass().getName());
+                            result.put("message", ex.getMessage());
+                            return Mono.just(result);
+                        });
     }
 
     private Map<String, Object> buildResult(String key, Boolean written, String value) {
