@@ -13,6 +13,11 @@ spring:
           '[/**]':
             allowedOrigins:
               - "https://chronoflow.site"
+              - "https://api.chronoflow.site"
+              - "https://www.chronoflow.site"
+              - "http://chronoflow.site"
+              - "http://api.chronoflow.site"
+              - "http://www.chronoflow.site"
               - "http://localhost:5173"
               - "http://127.0.0.1:5173"
             allowed-methods:
