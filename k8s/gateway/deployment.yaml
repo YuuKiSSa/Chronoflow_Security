@@ -59,6 +59,8 @@ spec:
                 secretKeyRef:
                   name: redis-auth
                   key: password
+            - name: SPRING_DATA_REDIS_USERNAME
+              value: "default"
             # Spring Boot binds this directly to spring.data.redis.password (high precedence vs Nacos YAML).
             - name: SPRING_DATA_REDIS_PASSWORD
               valueFrom:
