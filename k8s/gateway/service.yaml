@@ -22,9 +22,30 @@ metadata:
     app: gateway
   annotations:
     kubernetes.io/ingress.global-static-ip-name: lb-ip-dev
+    networking.gke.io/managed-certificates: api-chronoflow-cert
 spec:
   defaultBackend:
     service:
       name: gateway
       port:
         number: 80
+  rules:
+    - host: api.chronoflow.site
+      http:                        # ← this must exist
+        paths:
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 80
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: api-chronoflow-cert
+  namespace: chronoflow
+spec:
+  domains:
+    - api.chronoflow.site
