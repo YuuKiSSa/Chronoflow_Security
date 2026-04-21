@@ -221,4 +221,4 @@ chronoflow:
   firebase:
     enabled: ${FIREBASE_ENABLED:true}
     credentials-base64: ${FIREBASE_SERVICE_ACCOUNT_JSON:}
-    project-id: ${FIREBASE_PROJECT_ID:chronoflow-noti-service}
+    project-id: ${FIREBASE_PROJECT_ID:chronoflow-1}
