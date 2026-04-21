@@ -190,7 +190,15 @@ public class UserServiceImpl implements UserService {
                         .recipientEmail(user.getEmail())
                         .build();
 
-        memberNotificationPublisher.sendMemberInviteEmail(req);
+        try {
+            memberNotificationPublisher.sendMemberInviteEmail(req);
+        } catch (Exception e) {
+            log.warn(
+                    "Send member invite notification failed. userId={} email={}",
+                    user.getId(),
+                    user.getEmail(),
+                    e);
+        }
 
         return user.getId();
     }
