@@ -19,7 +19,7 @@ spring:
   # Redis config
   data:
     redis:
-      database: 1
+      database: 0
       repositories:
         enabled: false
       lettuce:
