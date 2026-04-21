@@ -5,6 +5,7 @@ spring:
       host: ${DEV_REDIS_HOST}
       port: ${DEV_REDIS_PORT}
       database: ${DEV_REDIS_DATABASE}
+      username: ${REDIS_USERNAME:default}
       # password: ${DEV_REDIS_PASSWORD}
   cloud:
     gateway:

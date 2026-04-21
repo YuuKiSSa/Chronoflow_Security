@@ -18,6 +18,7 @@ spring:
     redis:
       repositories:
         enabled: false
+      username: ${REDIS_USERNAME:default}
       lettuce:
         pool:
           # Maximum number of connections in the connection pool
