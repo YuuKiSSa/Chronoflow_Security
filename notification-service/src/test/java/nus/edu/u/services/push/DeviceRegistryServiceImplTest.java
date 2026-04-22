@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import nus.edu.u.domain.dataObject.common.NotificationDeviceDO;
 import nus.edu.u.domain.dto.common.DeviceRegisterDTO;
 import nus.edu.u.domain.dto.common.NotificationDeviceViewDTO;
