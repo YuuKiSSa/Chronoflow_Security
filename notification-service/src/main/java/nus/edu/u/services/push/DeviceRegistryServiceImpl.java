@@ -43,7 +43,7 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
         if (device == null) {
             // optional: if token is already stored elsewhere, revoke it (enforce uniqueness)
             repo.findByToken(token)
-                    .ifPresent(
+                    .forEach(
                             other -> {
                                 // If the token is linked to a different device record, revoke that
                                 // record
@@ -72,7 +72,7 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
         if (!token.equals(device.getToken())) {
             // optional: enforce token uniqueness by revoking the other row that holds this token
             repo.findByToken(token)
-                    .ifPresent(
+                    .forEach(
                             other -> {
                                 if (!other.getId().equals(device.getId())) {
                                     other.setStatus(DeviceStatus.REVOKED);
@@ -102,7 +102,7 @@ public class DeviceRegistryServiceImpl implements DeviceRegistryService {
     public void revokeByToken(String token) {
         if (token == null || token.isBlank()) return;
         repo.findByToken(token.trim())
-                .ifPresent(
+                .forEach(
                         d -> {
                             d.setStatus(DeviceStatus.REVOKED);
                             repo.save(d);
