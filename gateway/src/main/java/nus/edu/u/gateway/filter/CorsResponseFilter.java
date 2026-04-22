@@ -42,6 +42,8 @@ public class CorsResponseFilter implements WebFilter, Ordered {
                     "http://chronoflow.site",
                     "http://api.chronoflow.site",
                     "http://www.chronoflow.site",
+                    "https://chronoflow-1.web.app",
+                    "https://chronoflow-1.firebaseapp.com",
                     "http://localhost:5173",
                     "http://127.0.0.1:5173");
 
