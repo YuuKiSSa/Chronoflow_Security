@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 import nus.edu.u.domain.dataObject.common.NotificationDeviceDO;
 import nus.edu.u.domain.dto.common.DeviceRegisterDTO;
 import nus.edu.u.domain.dto.common.NotificationDeviceViewDTO;
@@ -52,7 +52,7 @@ class DeviceRegistryServiceImplTest {
                         .token("token-1")
                         .status(DeviceStatus.ACTIVE)
                         .build();
-        when(repository.findByToken("token-1")).thenReturn(Optional.of(device));
+        when(repository.findByToken("token-1")).thenReturn(List.of(device));
 
         service.revokeByToken("token-1");
 
