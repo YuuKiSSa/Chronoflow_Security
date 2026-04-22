@@ -56,7 +56,17 @@
                     <groupId>com.google.auth</groupId>
                     <artifactId>google-auth-library-oauth2-http</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.google.auth</groupId>
+                    <artifactId>google-auth-library-credentials</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- Explicit google-auth to match gax-grpc 2.74.0 requirements -->
+        <dependency>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-oauth2-http</artifactId>
         </dependency>
 
         <dependency>
