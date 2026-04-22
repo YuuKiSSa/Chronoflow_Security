@@ -208,7 +208,7 @@ aws:
 
 
 email:
-  from: "chronoflow2025@gmail.com"
+  from: "noreply@assessorflow.online"
 
 notification:
   ws:
