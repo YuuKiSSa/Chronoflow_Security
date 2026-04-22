@@ -23,6 +23,13 @@ spring:
               - "PATCH"
               - "PUT"
               - "OPTIONS"
-            allowed-headers: "*"
+            allowed-headers:
+              - "Content-Type"
+              - "Authorization"
+              - "Accept"
+              - "Origin"
+              - "X-Requested-With"
+              - "Cache-Control"
+              - "Pragma"
             allow-credentials: true
             max-age: 360000

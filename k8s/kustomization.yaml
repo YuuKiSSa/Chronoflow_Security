@@ -16,6 +16,7 @@ resources:
   - external-secrets/external-secret-database.yaml
   - external-secrets/external-secret-file.yaml
   - external-secrets/external-secret-firebase.yaml
+  - external-secrets/external-secret-firebase-auth.yaml
   - external-secrets/external-secret-pub-sub.yaml
   - external-secrets/external-secret-redis.yaml
   - external-secrets/external-secret-mongodb.yaml

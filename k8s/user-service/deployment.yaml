@@ -118,7 +118,7 @@ spec:
             - name: FIREBASE_SERVICE_ACCOUNT_JSON
               valueFrom:
                 secretKeyRef:
-                  name: firebase
+                  name: firebase-auth
                   key: account-json
             - name: MOBILE_SSO_JWKS
               value: https://www.googleapis.com/oauth2/v3/certs
