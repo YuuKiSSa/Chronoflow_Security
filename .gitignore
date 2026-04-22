@@ -46,6 +46,9 @@ mysql/data
 # Claude Code
 .claude/
 
+# Gemini
+.geminiignore
+GEMINI.md
 # Windows artifacts
 nul
 

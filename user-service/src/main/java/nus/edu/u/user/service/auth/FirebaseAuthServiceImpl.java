@@ -38,8 +38,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Firebase authentication service implementation.
- * Verifies Firebase ID tokens and creates Sa-Token sessions.
+ * Firebase authentication service implementation. Verifies Firebase ID tokens and creates Sa-Token
+ * sessions.
  */
 @Service
 @RequiredArgsConstructor
@@ -67,7 +67,10 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
             // Enforce email verification (skip for SSO providers - they verify identity themselves)
             if (!isSsoProvider(signInProvider) && !emailVerified) {
                 auditLogger.log(
-                        SecurityEvent.LOGIN_FAILED_EMAIL_NOT_VERIFIED, firebaseUid, clientIp, email);
+                        SecurityEvent.LOGIN_FAILED_EMAIL_NOT_VERIFIED,
+                        firebaseUid,
+                        clientIp,
+                        email);
                 throw exception(AUTH_LOGIN_BAD_CREDENTIALS);
             }
 
@@ -84,8 +87,9 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
             }
 
             // Bypass tenant filter since user is not authenticated yet
-            UserDO userDO = MybatisPlusConfig.executeWithoutTenantFilter(
-                    () -> userService.selectUserById(internalUserId));
+            UserDO userDO =
+                    MybatisPlusConfig.executeWithoutTenantFilter(
+                            () -> userService.selectUserById(internalUserId));
             if (userDO == null) {
                 throw exception(ACCOUNT_ERROR);
             }
@@ -121,25 +125,35 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
             // Check if already registered
             Long existingUserId = firebaseMappingService.getInternalUserId(firebaseUid);
             if (existingUserId != null) {
-                UserDO existingUser = MybatisPlusConfig.executeWithoutTenantFilter(
-                        () -> userService.selectUserById(existingUserId));
+                UserDO existingUser =
+                        MybatisPlusConfig.executeWithoutTenantFilter(
+                                () -> userService.selectUserById(existingUserId));
                 return createSession(existingUser, true, userAgent, clientIp, firebaseUid);
             }
 
             // Check if email already exists (link accounts) - bypass tenant filter
-            UserDO existingByEmail = MybatisPlusConfig.executeWithoutTenantFilter(
-                    () -> userService.getUserByEmail(email));
+            UserDO existingByEmail =
+                    MybatisPlusConfig.executeWithoutTenantFilter(
+                            () -> userService.getUserByEmail(email));
             if (existingByEmail != null) {
                 firebaseMappingService.createMapping(firebaseUid, existingByEmail.getId());
                 MybatisPlusConfig.executeWithoutTenantFilter(
-                        () -> { userService.updateFirebaseUid(existingByEmail.getId(), firebaseUid); return null; });
+                        () -> {
+                            userService.updateFirebaseUid(existingByEmail.getId(), firebaseUid);
+                            return null;
+                        });
                 return createSession(existingByEmail, true, userAgent, clientIp, firebaseUid);
             }
 
             // Create new user - bypass tenant filter
-            UserDO newUser = MybatisPlusConfig.executeWithoutTenantFilter(
-                    () -> userService.createUserFromFirebase(
-                            firebaseUid, email, reqVO.getName(), reqVO.getOrganizationName()));
+            UserDO newUser =
+                    MybatisPlusConfig.executeWithoutTenantFilter(
+                            () ->
+                                    userService.createUserFromFirebase(
+                                            firebaseUid,
+                                            email,
+                                            reqVO.getName(),
+                                            reqVO.getOrganizationName()));
             firebaseMappingService.createMapping(firebaseUid, newUser.getId());
             auditLogger.log(SecurityEvent.USER_REGISTERED, firebaseUid, clientIp, email);
             return createSession(newUser, true, userAgent, clientIp, firebaseUid);
@@ -227,9 +241,7 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
         StpUtil.logout();
     }
 
-    /**
-     * Create Sa-Token session for authenticated user.
-     */
+    /** Create Sa-Token session for authenticated user. */
     private LoginRespVO createSession(
             UserDO userDO,
             boolean remember,
@@ -243,15 +255,14 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
         String fingerprint = generateFingerprint(userAgent, clientIp);
         tokenService.storeFingerprint(StpUtil.getTokenValue(), fingerprint);
 
-        String refreshToken = remember ? tokenService.createRefreshTokenWithFamily(userDO.getId()) : null;
+        String refreshToken =
+                remember ? tokenService.createRefreshTokenWithFamily(userDO.getId()) : null;
 
         auditLogger.log(SecurityEvent.LOGIN_SUCCESS, firebaseUid, clientIp, userDO.getEmail());
         return buildLoginResponse(userDO.getId(), refreshToken);
     }
 
-    /**
-     * Auto-register Google SSO users.
-     */
+    /** Auto-register Google SSO users. */
     @Transactional(rollbackFor = Exception.class)
     protected LoginRespVO autoRegisterSsoUser(
             FirebaseToken decodedToken, String userAgent, String clientIp) {
@@ -260,31 +271,38 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
         String displayName = decodedToken.getName();
 
         // Check if email already exists - bypass tenant filter since user is not authenticated
-        UserDO existingUser = MybatisPlusConfig.executeWithoutTenantFilter(
-                () -> userService.getUserByEmail(email));
+        UserDO existingUser =
+                MybatisPlusConfig.executeWithoutTenantFilter(
+                        () -> userService.getUserByEmail(email));
         if (existingUser != null) {
             firebaseMappingService.createMapping(firebaseUid, existingUser.getId());
             MybatisPlusConfig.executeWithoutTenantFilter(
-                    () -> { userService.updateFirebaseUid(existingUser.getId(), firebaseUid); return null; });
+                    () -> {
+                        userService.updateFirebaseUid(existingUser.getId(), firebaseUid);
+                        return null;
+                    });
             return createSession(existingUser, true, userAgent, clientIp, firebaseUid);
         }
 
         // Create new user - bypass tenant filter for user creation
-        UserDO newUser = MybatisPlusConfig.executeWithoutTenantFilter(
-                () -> userService.createUserFromFirebase(
-                        firebaseUid,
-                        email,
-                        displayName != null ? displayName : email.split("@")[0],
-                        null));
+        UserDO newUser =
+                MybatisPlusConfig.executeWithoutTenantFilter(
+                        () ->
+                                userService.createUserFromFirebase(
+                                        firebaseUid,
+                                        email,
+                                        displayName != null ? displayName : email.split("@")[0],
+                                        null));
         firebaseMappingService.createMapping(firebaseUid, newUser.getId());
         auditLogger.log(
-                SecurityEvent.USER_REGISTERED, firebaseUid, clientIp, "SSO auto-register: " + email);
+                SecurityEvent.USER_REGISTERED,
+                firebaseUid,
+                clientIp,
+                "SSO auto-register: " + email);
         return createSession(newUser, true, userAgent, clientIp, firebaseUid);
     }
 
-    /**
-     * Load user roles and permissions into Sa-Token session.
-     */
+    /** Load user roles and permissions into Sa-Token session. */
     private void loadPermissionsIntoSession(Long userId) {
         UserRoleDTO userRoleDTO = userService.selectUserWithRole(userId);
         List<UserPermissionDTO> userPermissionList = userService.getUserPermissions(userId);
@@ -306,9 +324,7 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
                         .collect(Collectors.toList()));
     }
 
-    /**
-     * Build login response with user info and roles.
-     */
+    /** Build login response with user info and roles. */
     private LoginRespVO buildLoginResponse(Long userId, String refreshToken) {
         UserRoleDTO userRoleDTO = userService.selectUserWithRole(userId);
         if (userRoleDTO == null) {
@@ -339,9 +355,7 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
                 .build();
     }
 
-    /**
-     * Generate fingerprint from User-Agent and IP.
-     */
+    /** Generate fingerprint from User-Agent and IP. */
     private String generateFingerprint(String userAgent, String clientIp) {
         String raw =
                 (userAgent != null ? userAgent : "unknown")
@@ -350,9 +364,7 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
         return DigestUtils.sha256Hex(raw);
     }
 
-    /**
-     * Extract sign-in provider from Firebase token claims.
-     */
+    /** Extract sign-in provider from Firebase token claims. */
     @SuppressWarnings("unchecked")
     private String getSignInProvider(FirebaseToken token) {
         Object firebase = token.getClaims().get("firebase");
