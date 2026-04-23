@@ -78,6 +78,45 @@ public class FirebaseAuthController {
         return success(loginRespVO);
     }
 
+    @SaIgnore
+    @PostMapping("/exchangeFirebaseToken")
+    @Operation(summary = "Exchange Firebase ID token with backend OTT")
+    public CommonResult<String> exchangeFirebaseToken(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+            @RequestBody(required = false) FirebaseLoginReqVO reqVO,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        try {
+            String clientIp = getClientIp(request);
+            String userAgent = request.getHeader("User-Agent");
+
+            // Rate limiting
+            if (!rateLimiter.isAllowed("exchange-firebase-token", clientIp)) {
+                auditLogger.log(
+                        SecurityEvent.RATE_LIMIT_EXCEEDED,
+                        null,
+                        clientIp,
+                        "exchange-firebase-token");
+                throw new RuntimeException("Too many login attempts. Please try again later.");
+            }
+
+            String idToken = extractBearerToken(authHeader);
+            boolean remember = reqVO != null && reqVO.isRemember();
+
+            LoginRespVO loginRespVO =
+                    firebaseAuthService.firebaseLogin(idToken, remember, userAgent, clientIp);
+            String oneTimeToken = firebaseAuthService.generateOTT(loginRespVO.getUser().getId());
+            log.info(
+                    "Firebase token exchange succeeded for userId={}, clientIp={}",
+                    loginRespVO.getUser().getId(),
+                    clientIp);
+            return success(oneTimeToken);
+        } catch (Exception e) {
+            log.warn("Firebase token exchange failed: {}", e.getMessage());
+            return CommonResult.error(e.hashCode(), e.getMessage());
+        }
+    }
+
     /**
      * Register with Firebase credentials. The Firebase ID token should be passed in the
      * Authorization header as Bearer token.

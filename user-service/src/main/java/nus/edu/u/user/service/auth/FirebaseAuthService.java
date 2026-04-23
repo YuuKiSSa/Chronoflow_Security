@@ -21,6 +21,8 @@ public interface FirebaseAuthService {
     LoginRespVO firebaseLogin(
             String firebaseIdToken, boolean remember, String userAgent, String clientIp);
 
+    String generateOTT(long userId);
+
     /**
      * Register new user with Firebase credentials.
      *
