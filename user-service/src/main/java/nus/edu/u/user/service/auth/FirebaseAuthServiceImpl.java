@@ -14,6 +14,8 @@ import cn.hutool.core.util.StrUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,6 +53,7 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
     private final EnhancedTokenService tokenService;
     private final FirebaseUserMappingService firebaseMappingService;
     private final SecurityAuditLogger auditLogger;
+    private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
     public LoginRespVO firebaseLogin(
