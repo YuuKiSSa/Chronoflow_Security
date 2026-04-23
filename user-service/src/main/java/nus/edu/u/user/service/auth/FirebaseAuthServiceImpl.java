@@ -11,22 +11,31 @@ import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nus.edu.u.common.enums.CommonStatusEnum;
+import nus.edu.u.framework.mybatis.MybatisPlusConfig;
 import nus.edu.u.framework.security.audit.SecurityAuditLogger;
 import nus.edu.u.framework.security.audit.SecurityAuditLogger.SecurityEvent;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.dto.RoleDTO;
 import nus.edu.u.user.domain.dto.UserPermissionDTO;
 import nus.edu.u.user.domain.dto.UserRoleDTO;
+import nus.edu.u.user.domain.vo.auth.FirebaseRegisterReqVO;
 import nus.edu.u.user.domain.vo.auth.LoginRespVO;
 import nus.edu.u.user.domain.vo.auth.UserVO;
 import nus.edu.u.user.domain.vo.role.RoleRespVO;
 import nus.edu.u.user.service.role.RoleService;
 import nus.edu.u.user.service.user.UserService;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Firebase authentication service implementation. Verifies Firebase ID tokens and creates Sa-Token
