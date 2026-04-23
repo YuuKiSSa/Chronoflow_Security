@@ -13,8 +13,6 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseToken;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
@@ -136,13 +134,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public UserDO mobileSsoLogin(String token) throws Exception {
-        token = token.trim();
-        if (token.length() >= 2 && token.startsWith("\"") && token.endsWith("\"")) {
-            token = token.substring(1, token.length() - 1);
-        }
-
-        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
-        String email = decodedToken.getEmail();
+        JWTClaimsSet claims = this.verifyJwtSignature(token);
+        JWT jwtToken = JWTUtil.parseToken(token);
+        String email = jwtToken.getPayload("email").toString();
         return authenticate(email);
     }
 
