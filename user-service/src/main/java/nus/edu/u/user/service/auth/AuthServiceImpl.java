@@ -24,6 +24,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
+import com.google.firebase.auth.FirebaseAuth;
 import jakarta.annotation.Resource;
 import java.net.URL;
 import java.security.SecureRandom;
@@ -136,9 +137,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public UserDO mobileSsoLogin(String token) throws Exception {
-        JWTClaimsSet claims = this.verifyJwtSignature(token);
-        JWT jwtToken = JWTUtil.parseToken(token);
-        String email = jwtToken.getPayload("email").toString();
+        token = token.trim();
+        if (token.length() >= 2 && token.startsWith("\"") && token.endsWith("\"")) {
+            token = token.substring(1, token.length() - 1);
+        }
+        
+        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
+        String email = decodedToken.getEmail();
         return authenticate(email);
     }
 
