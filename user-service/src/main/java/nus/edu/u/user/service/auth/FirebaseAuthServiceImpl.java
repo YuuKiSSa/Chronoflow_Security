@@ -14,20 +14,15 @@ import cn.hutool.core.util.StrUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
-import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.Map;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.RequiredArgsConstructor;
 import nus.edu.u.common.enums.CommonStatusEnum;
 import nus.edu.u.framework.mybatis.MybatisPlusConfig;
 import nus.edu.u.framework.security.audit.SecurityAuditLogger;
 import nus.edu.u.framework.security.audit.SecurityAuditLogger.SecurityEvent;
-import nus.edu.u.framework.mybatis.MybatisPlusConfig;
 import nus.edu.u.user.domain.dataobject.user.UserDO;
 import nus.edu.u.user.domain.dto.RoleDTO;
 import nus.edu.u.user.domain.dto.UserPermissionDTO;
@@ -56,7 +51,6 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
     private final EnhancedTokenService tokenService;
     private final FirebaseUserMappingService firebaseMappingService;
     private final SecurityAuditLogger auditLogger;
-    private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
     public LoginRespVO firebaseLogin(
@@ -319,8 +313,7 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
     /** Load user roles and permissions into Sa-Token session. */
     private void loadPermissionsIntoSession(Long userId) {
         UserRoleDTO userRoleDTO = userService.selectUserWithRole(userId);
-        List
-          UserPermissionDTO> userPermissionList = userService.getUserPermissions(userId);
+        List<UserPermissionDTO> userPermissionList = userService.getUserPermissions(userId);
 
         if (userRoleDTO == null) {
             return;
