@@ -13,8 +13,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.jwt.JWT;
-import cn.hutool.jwt.JWTUtil;
+import com.google.firebase.auth.FirebaseAuth;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
@@ -24,7 +23,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import com.google.firebase.auth.FirebaseAuth;
 import jakarta.annotation.Resource;
 import java.net.URL;
 import java.security.SecureRandom;
@@ -141,7 +139,7 @@ public class AuthServiceImpl implements AuthService {
         if (token.length() >= 2 && token.startsWith("\"") && token.endsWith("\"")) {
             token = token.substring(1, token.length() - 1);
         }
-        
+
         FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
         String email = decodedToken.getEmail();
         return authenticate(email);
