@@ -100,6 +100,14 @@ public class FirebaseAuthServiceImpl implements FirebaseAuthService {
         }
     }
 
+    public String generateOTT(long userId) {
+        byte[] bytes = new byte[32];
+        secureRandom.nextBytes(bytes);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        userService.generateToken(token, userId);
+        return token;
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public LoginRespVO firebaseRegister(

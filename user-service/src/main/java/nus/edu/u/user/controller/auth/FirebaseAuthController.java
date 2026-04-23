@@ -105,7 +105,7 @@ public class FirebaseAuthController {
 
             LoginRespVO loginRespVO =
                     firebaseAuthService.firebaseLogin(idToken, remember, userAgent, clientIp);
-            String oneTimeToken = authService.generateOTT(loginRespVO.getUser().getId());
+            String oneTimeToken = firebaseAuthService.generateOTT(loginRespVO.getUser().getId());
             log.info(
                     "Firebase token exchange succeeded for userId={}, clientIp={}",
                     loginRespVO.getUser().getId(),
